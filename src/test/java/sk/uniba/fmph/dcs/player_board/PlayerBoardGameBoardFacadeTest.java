@@ -2,9 +2,7 @@ package sk.uniba.fmph.dcs.player_board;
 
 import org.junit.Test;
 import sk.uniba.fmph.dcs.stone_age.Effect;
-import sk.uniba.fmph.dcs.stone_age.TribeFedStatus;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;

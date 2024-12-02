@@ -1,4 +1,4 @@
-package sk.uniba.fmph.dcs.stone_age;
+package sk.uniba.fmph.dcs.player_board;
 
 import org.json.JSONObject;
 import sk.uniba.fmph.dcs.player_board.PlayerFigures;
@@ -6,6 +6,9 @@ import sk.uniba.fmph.dcs.player_board.PlayerFigures;
 import java.util.Collection;
 import java.util.Map;
 import sk.uniba.fmph.dcs.player_board.PlayerFigures;
+import sk.uniba.fmph.dcs.stone_age.Effect;
+import sk.uniba.fmph.dcs.stone_age.InterfaceFeedTribe;
+import sk.uniba.fmph.dcs.stone_age.InterfaceNewTurn;
 
 public final class TribeFedStatus implements InterfaceFeedTribe, InterfaceNewTurn {
     private static final int MAX_FIELDS = 10;

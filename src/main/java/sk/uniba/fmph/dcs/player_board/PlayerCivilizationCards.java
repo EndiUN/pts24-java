@@ -4,6 +4,7 @@ import org.json.JSONObject;
 import sk.uniba.fmph.dcs.stone_age.InterfaceGetState;
 import sk.uniba.fmph.dcs.stone_age.EndOfGameEffect;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 public class PlayerCivilizationCards implements InterfaceGetState {
@@ -13,7 +14,7 @@ public class PlayerCivilizationCards implements InterfaceGetState {
         endOfGameEffectMap = new HashMap<>();
     }
 
-    public void addEndOfGameEffects(EndOfGameEffect[] effects){
+    public void addEndOfGameEffects(Collection<EndOfGameEffect> effects){
         for (EndOfGameEffect effect : effects) {
             if (endOfGameEffectMap.containsKey(effect)) {
                 endOfGameEffectMap.put(effect, endOfGameEffectMap.get(effect) + 1);

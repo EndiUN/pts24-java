@@ -10,11 +10,11 @@ import sk.uniba.fmph.dcs.stone_age.PlayerOrder;
 import java.util.*;
 
 public class FigureLocationAdaptor implements InterfaceFigureLocation {
-    private final InterfaceFigureLocationInternal figureLocation;
+    private final InterfaceFigureLocation figureLocation;
     private final List<Player> players;
 
 
-    public FigureLocationAdaptor(final InterfaceFigureLocationInternal figureLocation, List<Player> players) {
+    public FigureLocationAdaptor(final InterfaceFigureLocation figureLocation, List<Player> players) {
         this.figureLocation = figureLocation;
         this.players = players;
     }
@@ -34,7 +34,7 @@ public class FigureLocationAdaptor implements InterfaceFigureLocation {
     public boolean placeFigures(PlayerOrder player, int figureCount) {
         Player p = getPlayerOrder(player);
         if (p != null) {
-            return figureLocation.placeFigures(p, figureCount);
+            return figureLocation.placeFigures(player, figureCount);
         }
         return false;
     }
@@ -44,7 +44,7 @@ public class FigureLocationAdaptor implements InterfaceFigureLocation {
     public HasAction tryToPlaceFigures(PlayerOrder player, int count) {
         Player pl = getPlayerOrder(player);
         if (pl != null) {
-            return figureLocation.tryToPlaceFigures(pl, count);
+            return figureLocation.tryToPlaceFigures(player, count);
         }
         return HasAction.NO_ACTION_POSSIBLE;
     }
@@ -54,7 +54,7 @@ public class FigureLocationAdaptor implements InterfaceFigureLocation {
     public ActionResult makeAction(PlayerOrder player, Collection<Effect> inputResources, Collection<Effect> outputResources) {
         Player pl = getPlayerOrder(player);
         if (pl != null) {
-            return figureLocation.makeAction(pl, inputResources, outputResources);
+            return figureLocation.makeAction(player, inputResources, outputResources);
         }
         return ActionResult.FAILURE;
     }
@@ -64,7 +64,7 @@ public class FigureLocationAdaptor implements InterfaceFigureLocation {
     public boolean skipAction(PlayerOrder player) {
         Player pl = getPlayerOrder(player);
         if (pl != null) {
-            return figureLocation.skipAction(pl);
+            return figureLocation.skipAction(player);
         }
         return false;
     }
@@ -74,7 +74,7 @@ public class FigureLocationAdaptor implements InterfaceFigureLocation {
     public HasAction tryToMakeAction(PlayerOrder player) {
         Player pl = getPlayerOrder(player);
         if (pl != null) {
-            return figureLocation.tryToMakeAction(pl);
+            return figureLocation.tryToMakeAction(player);
         }
         return HasAction.NO_ACTION_POSSIBLE;
     }

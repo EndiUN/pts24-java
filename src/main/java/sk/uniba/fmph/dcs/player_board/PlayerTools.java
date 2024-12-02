@@ -1,10 +1,11 @@
 package sk.uniba.fmph.dcs.player_board;
 
+import org.json.JSONObject;
 import sk.uniba.fmph.dcs.stone_age.InterfaceGetState;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class PlayerTools implements InterfaceGetState {
     private final int[] tools;
@@ -26,10 +27,6 @@ public class PlayerTools implements InterfaceGetState {
         roundToolsCount = totalToolsCount;
     }
 
-    public int getTools() {
-        return this.totalToolsCount;
-    }
-
     public void addTool(){
         if(totalToolsCount < 12) {
             totalToolsCount++;
@@ -39,13 +36,15 @@ public class PlayerTools implements InterfaceGetState {
         }
     }
 
-    public void addSingleUseTool(int strength) {
-        for(int i = maxMultiplyUseTools - 1; i < tools.length; i++){
-            if(tools[i] == -1){
+    public boolean addSingleUseTool(int strength) {
+        for (int i = maxMultiplyUseTools - 1; i < tools.length; i++) {
+            if (tools[i] == -1) {
                 tools[i] = strength;
-                break;
+                return true;
             }
         }
+        return false;
+    }
 
 
 
@@ -56,10 +55,10 @@ public class PlayerTools implements InterfaceGetState {
         }
         if (index > 2){
             if(tools[index] != -1){
-                 toReturn = Optional.of(tools[index]);
-                 totalToolsCount -= tools[index];
-                 roundToolsCount -= tools[index];
-                 tools[index] = -1;
+                toReturn = Optional.of(tools[index]);
+                totalToolsCount -= tools[index];
+                roundToolsCount -= tools[index];
+                tools[index] = -1;
             }
         } else {
             if(tools[index] != -1 && !usedTools[index]) {
@@ -86,6 +85,10 @@ public class PlayerTools implements InterfaceGetState {
                 "roundToolsCount", roundToolsCount
         );
         return new JSONObject(state).toString();
+    }
+
+    public int getTotalTools() {
+        return this.totalToolsCount;
     }
 
     public int getTotalToolsCount() {

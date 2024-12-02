@@ -1,12 +1,31 @@
 package sk.uniba.fmph.dcs.game_board;
 
 import sk.uniba.fmph.dcs.stone_age.Effect;
+import sk.uniba.fmph.dcs.stone_age.Player;
 
-public class GetSomethingThrow {
-    private Effect[] resource;
-    //private CurrentThrow name
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-    public GetSomethingThrow(Effect[] resource){
+public final class GetSomethingThrow implements EvaluateCivilizationCardImmediateEffect {
+    private final Effect resource;
+
+    public GetSomethingThrow(final Effect resource) {
         this.resource = resource;
+    }
+
+    @Override
+    public boolean performEffect(final Player player, final Effect choice) {
+        if (choice != this.resource) {
+            return false;
+        }
+        int[] dicesResults = Throw.throw_(2);
+        int sum = Arrays.stream(dicesResults).reduce(0, Integer::sum);;
+        List<Effect> toReturn = new ArrayList<>();
+        for(int i = 0; i < sum/choice.points(); i++){
+            toReturn.add(choice);
+        }
+        player.playerBoard().giveEffect(toReturn);
+        return true;
     }
 }
