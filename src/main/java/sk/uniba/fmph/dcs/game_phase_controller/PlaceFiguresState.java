@@ -18,7 +18,7 @@ public class PlaceFiguresState implements InterfaceGamePhaseState {
      * Maps game locations to their corresponding figure placement handlers
      */
     private final Map<Location, InterfaceFigureLocation> places;
-    private final Map<PlayerOrder, Boolean> playerCanPlace;
+    private final List<Player> players;
 
     
     /**
@@ -26,9 +26,9 @@ public class PlaceFiguresState implements InterfaceGamePhaseState {
      *
      * @param places Map of locations to their figure placement handlers
      */
-    public PlaceFiguresState(Map<Location, InterfaceFigureLocation> places) {
+    public PlaceFiguresState(Map<Location, InterfaceFigureLocation> places, List<Player> players) {
         this.places = places;
-        playerCanPlace = new HashMap<>();
+        this.players = players;
     }
 
     /**
@@ -47,7 +47,6 @@ public class PlaceFiguresState implements InterfaceGamePhaseState {
         }
 
         if(place.placeFigures(player, figuresCount)){
-            playerCanPlace.put(player, false);
             return ActionResult.ACTION_DONE;
         }else{
             return ActionResult.FAILURE;
@@ -63,11 +62,13 @@ public class PlaceFiguresState implements InterfaceGamePhaseState {
      */
     @Override
     public HasAction tryToMakeAutomaticAction(PlayerOrder player) {
-        if(playerCanPlace.containsKey(player) && !playerCanPlace.get(player)){
-            playerCanPlace.put(player, true);
-            return HasAction.NO_ACTION_POSSIBLE;
+        for(Player currPl : players){
+            if(currPl.getPlayerOrder().equals(player)
+                    && currPl.getPlayerBoard().hasFigures(1)){
+                return HasAction.WAITING_FOR_PLAYER_ACTION;
+            }
         }
-        return HasAction.WAITING_FOR_PLAYER_ACTION;
+        return HasAction.NO_ACTION_POSSIBLE;
     }
 
     // The following methods return FAILURE as they are not valid actions during the Place Figures phase

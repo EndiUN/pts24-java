@@ -1,7 +1,6 @@
 package sk.uniba.fmph.dcs.game_board;
 
 import junit.framework.TestCase;
-import org.junit.Test;
 import sk.uniba.fmph.dcs.player_board.PlayerBoard;
 import sk.uniba.fmph.dcs.player_board.PlayerBoardGameBoardFacade;
 import sk.uniba.fmph.dcs.stone_age.*;
@@ -38,7 +37,7 @@ public class GameBoardComponentTest extends TestCase {
         assertNotNull(gameBoard.getAllLocations().get(Location.HUNTING_GROUNDS));
         assertNotNull(gameBoard.getAllLocations().get(Location.FOREST));
         assertNotNull(gameBoard.getAllLocations().get(Location.CLAY_MOUND));
-        assertNotNull(gameBoard.getAllLocations().get(Location.QUARY));
+        assertNotNull(gameBoard.getAllLocations().get(Location.QUARRY));
         assertNotNull(gameBoard.getAllLocations().get(Location.RIVER));
 
         assertNotNull(gameBoard.getAllLocations().get(Location.BUILDING_TILE1));
@@ -135,8 +134,8 @@ public class GameBoardComponentTest extends TestCase {
         assertEquals(HasAction.AUTOMATIC_ACTION_DONE, hunting_grounds.tryToPlaceFigures(player4.getPlayerOrder(), 5));
 
         //Try to make action without tools
-        assertEquals(HasAction.AUTOMATIC_ACTION_DONE, hunting_grounds.tryToMakeAction(player1.getPlayerOrder()));
-
+        assertEquals(HasAction.WAITING_FOR_PLAYER_ACTION, hunting_grounds.tryToMakeAction(player1.getPlayerOrder()));
+        assertEquals(ActionResult.ACTION_DONE_WAIT_FOR_TOOL_USE, hunting_grounds.makeAction(player1.getPlayerOrder(), List.of(new Effect[0]), List.of(new Effect[0])));
         //We get sum which have player on his dices
         Field location = FigureLocationAdaptor.class.getDeclaredField("figureLocation");
         location.setAccessible(true);
@@ -167,7 +166,8 @@ public class GameBoardComponentTest extends TestCase {
 
         //Player want to use some tools
         player2.getPlayerBoard().giveEffect(List.of(Effect.TOOL, Effect.TOOL));
-        assertEquals(HasAction.AUTOMATIC_ACTION_DONE,hunting_grounds.tryToMakeAction(player2.getPlayerOrder()));
+        assertEquals(HasAction.WAITING_FOR_PLAYER_ACTION,hunting_grounds.tryToMakeAction(player2.getPlayerOrder()));
+        assertEquals(ActionResult.ACTION_DONE_WAIT_FOR_TOOL_USE, hunting_grounds.makeAction(player2.getPlayerOrder(), List.of(new Effect[0]), List.of(new Effect[0])));
         rs = (ResourceSource)location.get(hunting_grounds);
         round =  (CurrentThrow) currentThrow.get(rs);
         results = (int) dicesResults.get(round);
@@ -178,8 +178,8 @@ public class GameBoardComponentTest extends TestCase {
         }
         assertFalse(player2.getPlayerBoard().takeResources(List.of(Effect.FOOD)));
         //Then check if player get specify countOfFood food points
-        assertEquals(HasAction.WAITING_FOR_PLAYER_ACTION,hunting_grounds.tryToMakeAction(player2.getPlayerOrder()));
         assertEquals(ActionResult.ACTION_DONE, hunting_grounds.makeAction(player2.getPlayerOrder(), List.of(Effect.TOOL, Effect.TOOL), List.of(new Effect[0])));
+        assertEquals(HasAction.NO_ACTION_POSSIBLE,hunting_grounds.tryToMakeAction(player2.getPlayerOrder()));
         for(int i = 0; i < countOfFood; i++){
             assertTrue(player2.getPlayerBoard().takeResources(List.of(Effect.FOOD)));
         }
@@ -190,16 +190,22 @@ public class GameBoardComponentTest extends TestCase {
         //Just move them from the board
         assertFalse(hunting_grounds.skipAction(player3.getPlayerOrder()));
         assertFalse(hunting_grounds.skipAction(player4.getPlayerOrder()));
-        assertEquals(HasAction.AUTOMATIC_ACTION_DONE,hunting_grounds.tryToMakeAction(player3.getPlayerOrder()));
+
+        assertEquals(HasAction.WAITING_FOR_PLAYER_ACTION,hunting_grounds.tryToMakeAction(player3.getPlayerOrder()));
+        assertEquals(ActionResult.ACTION_DONE_WAIT_FOR_TOOL_USE, hunting_grounds.makeAction(player3.getPlayerOrder(), List.of(new Effect[0]), List.of(new Effect[0])));
+        assertEquals(ActionResult.ACTION_DONE, hunting_grounds.makeAction(player3.getPlayerOrder(), List.of(new Effect[0]), List.of(new Effect[0])));
         assertEquals(HasAction.NO_ACTION_POSSIBLE,hunting_grounds.tryToMakeAction(player3.getPlayerOrder()));
-        assertEquals(HasAction.AUTOMATIC_ACTION_DONE,hunting_grounds.tryToMakeAction(player4.getPlayerOrder()));
+
+        assertEquals(HasAction.WAITING_FOR_PLAYER_ACTION,hunting_grounds.tryToMakeAction(player4.getPlayerOrder()));
+        assertEquals(ActionResult.ACTION_DONE_WAIT_FOR_TOOL_USE, hunting_grounds.makeAction(player4.getPlayerOrder(), List.of(new Effect[0]), List.of(new Effect[0])));
+        assertEquals(ActionResult.ACTION_DONE, hunting_grounds.makeAction(player4.getPlayerOrder(), List.of(new Effect[0]), List.of(new Effect[0])));
         assertEquals(HasAction.NO_ACTION_POSSIBLE,hunting_grounds.tryToMakeAction(player4.getPlayerOrder()));
 
         assertFalse(hunting_grounds.newTurn());
     }
 
     public void testQuarry() throws NoSuchFieldException, IllegalAccessException {
-        InterfaceFigureLocation quarry = gameBoard.getAllLocations().get(Location.QUARY);
+        InterfaceFigureLocation quarry = gameBoard.getAllLocations().get(Location.QUARRY);
 
         //Try to place figures, which player doesn't have
         assertFalse(quarry.placeFigures(player3.getPlayerOrder(), 6));
@@ -214,7 +220,8 @@ public class GameBoardComponentTest extends TestCase {
         assertEquals(HasAction.NO_ACTION_POSSIBLE, quarry.tryToPlaceFigures(player4.getPlayerOrder(), 5));
 
         //Try to make action without tools
-        assertEquals(HasAction.AUTOMATIC_ACTION_DONE, quarry.tryToMakeAction(player1.getPlayerOrder()));
+        assertEquals(HasAction.WAITING_FOR_PLAYER_ACTION, quarry.tryToMakeAction(player1.getPlayerOrder()));
+        assertEquals(ActionResult.ACTION_DONE_WAIT_FOR_TOOL_USE, quarry.makeAction(player1.getPlayerOrder(), List.of(new Effect[0]), List.of(new Effect[0])));
 
         //We get sum which have player on his dices
         Field location = FigureLocationAdaptor.class.getDeclaredField("figureLocation");
@@ -242,14 +249,16 @@ public class GameBoardComponentTest extends TestCase {
 
         //Player want to use some tools
         player2.getPlayerBoard().giveEffect(List.of(Effect.TOOL, Effect.TOOL));
-        assertEquals(HasAction.AUTOMATIC_ACTION_DONE,quarry.tryToMakeAction(player2.getPlayerOrder()));
+        assertEquals(HasAction.WAITING_FOR_PLAYER_ACTION, quarry.tryToMakeAction(player2.getPlayerOrder()));
+        assertEquals(ActionResult.ACTION_DONE_WAIT_FOR_TOOL_USE, quarry.makeAction(player2.getPlayerOrder(), List.of(new Effect[0]), List.of(new Effect[0])));
+
         rs = (ResourceSource)location.get(quarry);
         round =  (CurrentThrow) currentThrow.get(rs);
         results = (int) dicesResults.get(round);
         countOfStone = (results + 2)/Effect.STONE.points();
-        //Then check if player get specify countOfFood food points
-        assertEquals(HasAction.WAITING_FOR_PLAYER_ACTION,quarry.tryToMakeAction(player2.getPlayerOrder()));
+        //Then check if player get specify countOfFood stone points
         assertEquals(ActionResult.ACTION_DONE, quarry.makeAction(player2.getPlayerOrder(), List.of(Effect.TOOL, Effect.TOOL), List.of(new Effect[0])));
+        assertEquals(HasAction.NO_ACTION_POSSIBLE,quarry.tryToMakeAction(player2.getPlayerOrder()));
         for(int i = 0; i < countOfStone; i++){
             assertTrue(player2.getPlayerBoard().takeResources(List.of(Effect.STONE)));
         }

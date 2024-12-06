@@ -4,17 +4,16 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Collection;
-import java.util.ArrayList;
+import java.util.*;
 
+import sk.uniba.fmph.dcs.player_board.PlayerBoard;
+import sk.uniba.fmph.dcs.player_board.PlayerBoardGameBoardFacade;
 import sk.uniba.fmph.dcs.stone_age.*;
 
 public class PlaceFiguresStateTest {
     private PlaceFiguresState state;
     private MockFigureLocation mockLocation;
-    private PlayerOrder player;
+    private Player player;
     
     private class MockFigureLocation implements InterfaceFigureLocation {
         private HasAction nextTryResponse = HasAction.NO_ACTION_POSSIBLE;
@@ -64,59 +63,53 @@ public class PlaceFiguresStateTest {
         mockLocation = new MockFigureLocation();
         Map<Location, InterfaceFigureLocation> places = new HashMap<>();
         places.put(Location.HUNTING_GROUNDS, mockLocation);
-        state = new PlaceFiguresState(places);
-        player = new PlayerOrder(0, 2);
+        player = new Player(new PlayerOrder(0, 2), new PlayerBoardGameBoardFacade(new PlayerBoard()));
+        state = new PlaceFiguresState(places, List.of(player));
     }
 
     @Test
     public void testPlaceFiguresSuccess() {
         mockLocation.setNextPlaceResponse(true);
         assertEquals(ActionResult.ACTION_DONE, 
-            state.placeFigures(player, Location.HUNTING_GROUNDS, 1));
+            state.placeFigures(player.getPlayerOrder(), Location.HUNTING_GROUNDS, 1));
     }
 
     @Test
     public void testPlaceFiguresFailure() {
         mockLocation.setNextPlaceResponse(false);
         assertEquals(ActionResult.FAILURE,
-            state.placeFigures(player, Location.HUNTING_GROUNDS, 1));
+            state.placeFigures(player.getPlayerOrder(), Location.HUNTING_GROUNDS, 1));
     }
 
     @Test
     public void testPlaceFiguresInvalidLocation() {
         assertEquals(ActionResult.FAILURE,
-            state.placeFigures(player, Location.TOOL_MAKER, 1));
+            state.placeFigures(player.getPlayerOrder(), Location.TOOL_MAKER, 1));
     }
 
     @Test
     public void testTryToMakeAutomaticActionWaiting() {
         mockLocation.setNextTryResponse(HasAction.WAITING_FOR_PLAYER_ACTION);
         assertEquals(HasAction.WAITING_FOR_PLAYER_ACTION,
-            state.tryToMakeAutomaticAction(player));
+            state.tryToMakeAutomaticAction(player.getPlayerOrder()));
     }
 
-//    @Test
-//    public void testTryToMakeAutomaticActionNoAction() {
-//        mockLocation.setNextTryResponse(HasAction.NO_ACTION_POSSIBLE);
-//        assertEquals(HasAction.NO_ACTION_POSSIBLE,
-//            state.tryToMakeAutomaticAction(player));
-//    }
 
     @Test
     public void testInvalidActionsReturnFailure() {
         assertEquals(ActionResult.FAILURE,
-            state.makeAction(player, Location.HUNTING_GROUNDS, new ArrayList<>(), new ArrayList<>()));
+            state.makeAction(player.getPlayerOrder(), Location.HUNTING_GROUNDS, new ArrayList<>(), new ArrayList<>()));
         assertEquals(ActionResult.FAILURE,
-            state.skipAction(player, Location.HUNTING_GROUNDS));
+            state.skipAction(player.getPlayerOrder(), Location.HUNTING_GROUNDS));
         assertEquals(ActionResult.FAILURE,
-            state.useTools(player, 0));
+            state.useTools(player.getPlayerOrder(), 0));
         assertEquals(ActionResult.FAILURE,
-            state.noMoreToolsThisThrow(player));
+            state.noMoreToolsThisThrow(player.getPlayerOrder()));
         assertEquals(ActionResult.FAILURE,
-            state.feedTribe(player, new ArrayList<>()));
+            state.feedTribe(player.getPlayerOrder(), new ArrayList<>()));
         assertEquals(ActionResult.FAILURE,
-            state.doNotFeedThisTurn(player));
+            state.doNotFeedThisTurn(player.getPlayerOrder()));
         assertEquals(ActionResult.FAILURE,
-            state.makeAllPlayersTakeARewardChoice(player, Effect.WOOD));
+            state.makeAllPlayersTakeARewardChoice(player.getPlayerOrder(), Effect.WOOD));
     }
 }

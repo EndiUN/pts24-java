@@ -29,7 +29,6 @@ public class MakeActionState implements InterfaceGamePhaseState {
     //private final PlayerOrder currentPlayer;
 
     public MakeActionState(){
-        //currentPlayer = null;
         places = null;
     }
 
@@ -187,39 +186,25 @@ public class MakeActionState implements InterfaceGamePhaseState {
      */
     @Override
     public HasAction tryToMakeAutomaticAction(PlayerOrder player) {
-        if (usedPlayers.contains(player)) {
-            return HasAction.NO_ACTION_POSSIBLE;
-        }
+        List<HasAction> playerActions = new ArrayList<>();
 
         for(Location key: places.keySet()){
             InterfaceFigureLocation playerLoc = places.get(key);
             HasAction playerAction = playerLoc.tryToMakeAction(player);
             if((key == Location.HUT || key == Location.FIELD || key == Location.TOOL_MAKER)
                 && playerAction == HasAction.AUTOMATIC_ACTION_DONE){
-                return HasAction.AUTOMATIC_ACTION_DONE;
+                playerActions.add(HasAction.AUTOMATIC_ACTION_DONE);
             }
             if(playerAction == HasAction.WAITING_FOR_PLAYER_ACTION || playerAction == HasAction.AUTOMATIC_ACTION_DONE){
-                return HasAction.WAITING_FOR_PLAYER_ACTION;
+                playerActions.add(HasAction.WAITING_FOR_PLAYER_ACTION);
             }
         }
-
-//        boolean hasWaitingActions = false;
-//
-//        for (InterfaceFigureLocation figureLocation : places.values()) {
-//            HasAction hasAction = figureLocation.tryToMakeAction(player);
-//            if (hasAction == HasAction.WAITING_FOR_PLAYER_ACTION) {
-//                hasWaitingActions = true;
-//                break;
-//            }
-//            if (hasAction == HasAction.AUTOMATIC_ACTION_DONE) {
-//                return HasAction.AUTOMATIC_ACTION_DONE;
-//            }
-//        }
-//
-//        if (hasWaitingActions) {
-//            return HasAction.WAITING_FOR_PLAYER_ACTION;
-//        }
-
-        return HasAction.NO_ACTION_POSSIBLE;
+        if(playerActions.isEmpty()){
+            return HasAction.NO_ACTION_POSSIBLE;
+        }
+        if(playerActions.contains(HasAction.AUTOMATIC_ACTION_DONE)){
+            return HasAction.AUTOMATIC_ACTION_DONE;
+        }
+        return HasAction.WAITING_FOR_PLAYER_ACTION;
     }
 }

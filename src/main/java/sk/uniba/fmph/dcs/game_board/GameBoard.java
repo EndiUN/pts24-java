@@ -5,8 +5,13 @@ import sk.uniba.fmph.dcs.stone_age.*;
 
 import java.util.*;
 
+/**
+ * The GameBoard class represents the central game board for a Stone Age board game.
+ * It manages all locations, buildings, cards, and resources for gameplay.
+ * This class initializes and organizes various components like resource sources,
+ * tool-making huts, fields, hunting grounds, and civilization card locations.
+ */
 public class GameBoard implements InterfaceGetState {
-    private String state;
     private final Map<Location, InterfaceFigureLocation> allLocations = new HashMap<>();
 
     private final CivilizationCard[] allCard = {
@@ -128,6 +133,12 @@ public class GameBoard implements InterfaceGetState {
 
     private final ArrayList<Building> allBuildings;
 
+    /**
+     * Constructs a GameBoard instance and initializes all locations, cards, and buildings
+     * based on the given players.
+     *
+     * @param players A list of players participating in the game.
+     */
     public GameBoard(final List<Player> players) {
         allBuildings = new ArrayList<>(List.of(buildings));
 
@@ -142,7 +153,7 @@ public class GameBoard implements InterfaceGetState {
         allLocations.put(Location.HUNTING_GROUNDS, new FigureLocationAdaptor(new ResourceSource(Effect.FOOD,  players.size()), players));
         allLocations.put(Location.FOREST, new FigureLocationAdaptor(new ResourceSource(Effect.WOOD, players.size()), players));
         allLocations.put(Location.CLAY_MOUND, new FigureLocationAdaptor(new ResourceSource(Effect.CLAY, players.size()), players));
-        allLocations.put(Location.QUARY, new FigureLocationAdaptor(new ResourceSource(Effect.STONE, players.size()), players));
+        allLocations.put(Location.QUARRY, new FigureLocationAdaptor(new ResourceSource(Effect.STONE, players.size()), players));
         allLocations.put(Location.RIVER, new FigureLocationAdaptor(new ResourceSource(Effect.GOLD, players.size()), players));
 
         //Initialization of buildings tiles
@@ -168,6 +179,11 @@ public class GameBoard implements InterfaceGetState {
         allLocations.put(Location.CIVILISATION_CARD4, new FigureLocationAdaptor(cardPlace4, players));
     }
 
+    /**
+     * Generates a shuffled list of buildings to be used on the game board.
+     *
+     * @return A list of buildings for the current game.
+     */
     private List<Building> generateBuildings(){
         Collections.shuffle(allBuildings);
         List<Building> toReturn = new ArrayList<>();
@@ -179,16 +195,32 @@ public class GameBoard implements InterfaceGetState {
         return toReturn;
     }
 
+    /**
+     * Generates a shuffled list of civilization cards to be used during the game.
+     *
+     * @return A list of civilization cards for the current game.
+     */
     private List<CivilizationCard> generateCards(){
         List<CivilizationCard> toShuffle = new ArrayList<>(List.of(allCard));
         Collections.shuffle(toShuffle);
         return toShuffle;
     }
 
+    /**
+     * Retrieves all game locations with their associated figure locations.
+     *
+     * @return A map where keys are locations and values are figure locations.
+     */
     public final Map<Location, InterfaceFigureLocation> getAllLocations() {
         return allLocations;
     }
 
+    /**
+     * Provides the current state of the game board in JSON format.
+     *
+     * @return A string representation of the game board's state in JSON format.
+     */
+    @Override
     public String state() {
         Map<Location, String> states = new HashMap<>();
 

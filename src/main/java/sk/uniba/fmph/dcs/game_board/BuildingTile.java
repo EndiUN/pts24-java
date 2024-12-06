@@ -26,6 +26,7 @@ public class BuildingTile implements InterfaceFigureLocationInternal, InterfaceG
             return false;
         }
         figures.add(player.getPlayerOrder());
+        player.getPlayerBoard().takeFigures(figureCount);
         return true;
     }
 

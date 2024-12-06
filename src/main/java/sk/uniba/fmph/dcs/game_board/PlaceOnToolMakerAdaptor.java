@@ -10,7 +10,6 @@ import java.util.List;
 
 public class PlaceOnToolMakerAdaptor implements InterfaceFigureLocationInternal, InterfaceGetState {
     private final ToolMakerHutFields toolMaker;
-    private final List<PlayerOrder> usedPlayers = new ArrayList<>();
 
     /**
      * Constructs a new {@code PlaceOnToolMakerAdaptor} with the specified {@link ToolMakerHutFields}.

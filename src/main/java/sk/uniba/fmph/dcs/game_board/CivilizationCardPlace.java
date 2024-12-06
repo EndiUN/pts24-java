@@ -6,6 +6,11 @@ import sk.uniba.fmph.dcs.stone_age.*;
 
 import java.util.*;
 
+/**
+ * Represents a location on the game board where players can place figures
+ * to obtain a civilization card. This class manages actions such as placing figures,
+ * executing player actions, and cycling through new cards.
+ */
 public class CivilizationCardPlace implements InterfaceFigureLocationInternal, InterfaceGetState{
     private final int requiredResources;
     private final ArrayList<PlayerOrder> figures = new ArrayList<>();
@@ -14,7 +19,14 @@ public class CivilizationCardPlace implements InterfaceFigureLocationInternal, I
     private final CivilizationCardPlace next;
     private EvaluateCivilizationCardImmediateEffect performer;
     private boolean first = false;
-    private int sum;
+
+    /**
+     * Constructs a new {@link CivilizationCardPlace}.
+     *
+     * @param next            The next card place in the sequence, or {@code null} if this is the last place.
+     * @param cardDeck        The deck of civilization cards to draw cards from.
+     * @param requiredResources The number of resources required to obtain a card from this place.
+     */
     public CivilizationCardPlace(final CivilizationCardPlace next, final CivilizationCardDeck cardDeck, final int requiredResources){
         this.cardDeck = cardDeck;
         this.requiredResources = requiredResources;
@@ -25,6 +37,12 @@ public class CivilizationCardPlace implements InterfaceFigureLocationInternal, I
         this.performer = null;
         this.cardOfThisPlace = placeCard();
     }
+
+    /**
+     * Attempts to place a new card at this location.
+     *
+     * @return The card previously at this location, if present, or an empty {@link Optional}.
+     */
     public Optional<CivilizationCard> placeCard(){
         if(cardOfThisPlace.isPresent()){
             Optional<CivilizationCard> toReturn = this.cardOfThisPlace;
@@ -41,6 +59,13 @@ public class CivilizationCardPlace implements InterfaceFigureLocationInternal, I
         }
     }
 
+    /**
+     * Places figures at this card place.
+     *
+     * @param player      The player placing the figures.
+     * @param figureCount The number of figures to place (must be 1 for this location).
+     * @return {@code true} if the figures were successfully placed, {@code false} otherwise.
+     */
     @Override
     public boolean placeFigures(Player player, int figureCount) {
         if(figureCount != 1){
@@ -60,6 +85,14 @@ public class CivilizationCardPlace implements InterfaceFigureLocationInternal, I
         return true;
     }
 
+    /**
+     * Attempts to place figures and returns the result as {@link HasAction}.
+     *
+     * @param player The player attempting to place figures.
+     * @param count  The number of figures to place.
+     * @return {@link HasAction#AUTOMATIC_ACTION_DONE} if successful,
+     *         {@link HasAction#NO_ACTION_POSSIBLE} otherwise.
+     */
     @Override
     public HasAction tryToPlaceFigures(Player player, int count) {
         if(this.placeFigures(player, count)){
@@ -68,6 +101,14 @@ public class CivilizationCardPlace implements InterfaceFigureLocationInternal, I
         return HasAction.NO_ACTION_POSSIBLE;
     }
 
+    /**
+     * Executes the player's action at this card place.
+     *
+     * @param player          The player taking the action.
+     * @param inputResources  The resources provided by the player.
+     * @param outputResources Additional resources required for certain effects.
+     * @return {@link ActionResult#ACTION_DONE} if successful, {@link ActionResult#FAILURE} otherwise.
+     */
     @Override
     public ActionResult makeAction(Player player, Collection<Effect> inputResources, Collection<Effect> outputResources) {
 
@@ -167,6 +208,12 @@ public class CivilizationCardPlace implements InterfaceFigureLocationInternal, I
         return ActionResult.ACTION_DONE;
     }
 
+    /**
+     * Skips the player's action at this card place.
+     *
+     * @param player The player skipping their action.
+     * @return {@code true} if the action was successfully skipped, {@code false} otherwise.
+     */
     @Override
     public boolean skipAction(Player player) {
         if(!figures.contains(player.getPlayerOrder())){
@@ -177,6 +224,13 @@ public class CivilizationCardPlace implements InterfaceFigureLocationInternal, I
         return true;
     }
 
+    /**
+     * Checks if the player can make an action at this card place.
+     *
+     * @param player The player to check.
+     * @return {@link HasAction#WAITING_FOR_PLAYER_ACTION} if an action can be made,
+     *         {@link HasAction#NO_ACTION_POSSIBLE} otherwise.
+     */
     @Override
     public HasAction tryToMakeAction(Player player) {
         if(!figures.contains(player.getPlayerOrder())){
@@ -185,9 +239,22 @@ public class CivilizationCardPlace implements InterfaceFigureLocationInternal, I
         return HasAction.WAITING_FOR_PLAYER_ACTION;
     }
 
+    /**
+     * Prepares this card place for a new turn by placing a new card if available
+     * and clearing any figures from the previous turn.
+     *
+     * <p><strong>Note:</strong> The {@code newTurn()} method for card places must be called in
+     * the following sequence: first for {@code cardPlace1}, then {@code cardPlace2},
+     * {@code cardPlace3}, and finally {@code cardPlace4}. This ensures that card
+     * placement follows the correct order of the game board.</p>
+     *
+     * @return {@code true} if no card is available for this card place (deck is empty),
+     *         {@code false} otherwise.
+     */
     @Override
     public boolean newTurn() {
         cardOfThisPlace = this.placeCard();
+        figures.clear();
         if(cardOfThisPlace.isEmpty()){
             return true;
         }else{
@@ -196,6 +263,11 @@ public class CivilizationCardPlace implements InterfaceFigureLocationInternal, I
     }
 
 
+    /**
+     * Returns the state of this card place as a JSON string.
+     *
+     * @return A string representation of the state in JSON format.
+     */
     @Override
     public String state() {
         Map<String, Object> state = Map.of(

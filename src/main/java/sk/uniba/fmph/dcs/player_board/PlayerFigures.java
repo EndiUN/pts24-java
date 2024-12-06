@@ -8,7 +8,7 @@ import java.util.Map;
 public class PlayerFigures implements InterfaceGetState {
     private int totalFigures;
     private int figures;
-    private final int MAX_FIGURES = 10;
+    private static final int MAX_FIGURES = 10;
 
     /**
      * Constructs a new {@code PlayerFigures} instance with the initial number of figures set to 5.
@@ -92,6 +92,11 @@ public class PlayerFigures implements InterfaceGetState {
         return new JSONObject(state).toString();
     }
 
+    /**
+     * Returns the number of figures available for the current turn.
+     *
+     * @return the number of available figures
+     */
     public int getFigures() {
         return figures;
     }

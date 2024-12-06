@@ -9,7 +9,6 @@ import java.util.List;
 
 public class PlaceOnFieldsAdaptor implements InterfaceFigureLocationInternal, InterfaceGetState {
     private final ToolMakerHutFields fields;
-    private final List<PlayerOrder> usedPlayers = new ArrayList<>();
     /**
      * Constructs a new {@code PlaceOnFieldsAdaptor} with the specified {@link ToolMakerHutFields}.
      *
@@ -31,7 +30,6 @@ public class PlaceOnFieldsAdaptor implements InterfaceFigureLocationInternal, In
     public boolean placeFigures(Player player, int figureCount) {
         if(fields.placeOnFields(player)){
             player.getPlayerBoard().takeFigures(figureCount);
-            usedPlayers.add(player.getPlayerOrder());
             return true;
         }
         return false;

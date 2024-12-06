@@ -7,7 +7,7 @@ import java.util.List;
 import sk.uniba.fmph.dcs.stone_age.*;
 
 public class PlaceOnHutAdaptor implements InterfaceFigureLocationInternal, InterfaceGetState {
-    private ToolMakerHutFields huts;
+    private final ToolMakerHutFields huts;
     private final List<PlayerOrder> usedPlayers = new ArrayList<>();
     public PlaceOnHutAdaptor(ToolMakerHutFields toolMakerHutFields){
         this.huts = toolMakerHutFields;

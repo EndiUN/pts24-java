@@ -17,63 +17,15 @@ public class CurrentThrowTest {
     private Player mockPlayer;
     private Effect mockEffect;
 
-    private static class MockPlayerBoard implements InterfacePlayerBoardGameBoard {
-        private boolean hasFiguresResponse = true;
-        private Collection<Effect> resources;
-
-        @Override
-        public boolean hasFigures(int count) {
-            return hasFiguresResponse;
-        }
-
-        @Override
-        public boolean hasSufficientTools(int goal) {
-            return false;
-        }
-
-        @Override
-        public Optional<Integer> useTool(int idx) {
-            return Optional.empty();
-        }
-
-        @Override
-        public void giveEffect(Collection<Effect> stuff) {
-
-        }
-
-        @Override
-        public void giveFigure() {
-
-        }
-
-        @Override
-        public void giveEndOfGameEffect(Collection<EndOfGameEffect> stuff) {
-
-        }
-
-        @Override
-        public boolean takeResources(Collection<Effect> stuff) {
-            return false;
-        }
-
-        @Override
-        public boolean takeFigures(int count) {
-            return false;
-        }
-
-        public void setHasFiguresResponse(boolean response) {
-            this.hasFiguresResponse = response;
-        }
-    }
     @Before
     public void setUp() {
+        //Create new CurrentThrow
         currentThrow = new CurrentThrow();
 
-        //MockPlayerBoard mockPlayerBoard = new MockPlayerBoard();
-        PlayerBoard playerBoard = new PlayerBoard();
-        InterfacePlayerBoardGameBoard board = new PlayerBoardGameBoardFacade(playerBoard);
+        InterfacePlayerBoardGameBoard board = new PlayerBoardGameBoardFacade(new PlayerBoard());
         // Mocking a player
         mockPlayer = new Player(new PlayerOrder(0, 3), board);
+        //Give a player singleUseTool to use later
         mockPlayer.getPlayerBoard().giveEffect(List.of(new Effect[]{Effect.ONE_TIME_TOOL2}));
         // Mocking an effect (assuming Effect is an enum or a class)
         mockEffect = Effect.WOOD;
@@ -104,7 +56,7 @@ public class CurrentThrowTest {
         currentThrow.initiate(mockPlayer, mockEffect, 3);
         currentThrow.finishUsingTools();
 
-        boolean result = currentThrow.useTool(1);
+        boolean result = currentThrow.useTool(3);
         assertFalse(result);
     }
 

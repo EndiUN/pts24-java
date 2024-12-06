@@ -14,7 +14,6 @@ public class CivilizationCardPlaceTest extends TestCase {
     private Player player1;
     private Player player2;
     private Player player3;
-    private Player player4;
     private CivilizationCardDeck specialDeck;
     private CivilizationCardPlace civilizationCardPlace4;
     private CivilizationCardPlace civilizationCardPlace3;
@@ -108,28 +107,33 @@ public class CivilizationCardPlaceTest extends TestCase {
 
 
     public void setUp() throws NoSuchFieldException {
-        //Create cardPlaces and special cardDeck to test EndOfGameEffects
+        //Create simple cardDeck to create card places and special cardDecks to test EndOfGameEffects
         List<CivilizationCard> toShuffle = new ArrayList<>(List.of(allCard));
         Collections.shuffle(toShuffle);
         CivilizationCardDeck cardDeck = new CivilizationCardDeck(toShuffle);
 
+        //Set last card in specialCardDeck to card with Immediate effect CARD
         toShuffle.set(toShuffle.size() - 1, new CivilizationCard(List.of(ImmediateEffect.CARD),
                         List.of(EndOfGameEffect.WRITING)));
         specialDeck = new CivilizationCardDeck(toShuffle);
 
+        //Creating 4 card places for game
         civilizationCardPlace4 = new CivilizationCardPlace(null, cardDeck, 4);
         civilizationCardPlace3 = new CivilizationCardPlace(civilizationCardPlace4, cardDeck, 3);
         civilizationCardPlace2 = new CivilizationCardPlace(civilizationCardPlace3, cardDeck,2);
         civilizationCardPlace1 = new CivilizationCardPlace(civilizationCardPlace2, cardDeck, 1);
 
+        //Setting accesses to the card which is at the given card place
         cardOfThisPlace = CivilizationCardPlace.class.getDeclaredField("cardOfThisPlace");
         cardOfThisPlace.setAccessible(true);
 
+        //Creating 3 players to imitate their actions
         player1 = new Player(new PlayerOrder(0, 3), new PlayerBoardGameBoardFacade(new PlayerBoard()));
         player2 = new Player(new PlayerOrder(1, 3),  new PlayerBoardGameBoardFacade(new PlayerBoard()));
         player3 = new Player(new PlayerOrder(2, 3),  new PlayerBoardGameBoardFacade(new PlayerBoard()));
     }
     public void testInitializationOfCardPlaces() throws NoSuchFieldException, IllegalAccessException {
+        //Setting accesses to the required resources of the card places to know if they have been initialized right
         Field resources = CivilizationCardPlace.class.getDeclaredField("requiredResources");
         resources.setAccessible(true);
 
@@ -142,13 +146,13 @@ public class CivilizationCardPlaceTest extends TestCase {
         assertEquals(3, resourcesOfPlace3);
         assertEquals(2, resourcesOfPlace2);
         assertEquals(1, resourcesOfPlace1);
+
+        //Checking that all cards are different
         Optional<CivilizationCard> cardOnPlace4 = (Optional<CivilizationCard>) cardOfThisPlace.get(civilizationCardPlace4);
         Optional<CivilizationCard> cardOnPlace3 = (Optional<CivilizationCard>) cardOfThisPlace.get(civilizationCardPlace3);
         Optional<CivilizationCard> cardOnPlace2 = (Optional<CivilizationCard>) cardOfThisPlace.get(civilizationCardPlace2);
         Optional<CivilizationCard> cardOnPlace1 = (Optional<CivilizationCard>) cardOfThisPlace.get(civilizationCardPlace1);
 
-
-        //Tests if all cards are different
         assertNotSame(cardOnPlace4, cardOnPlace3);
         assertNotSame(cardOnPlace4, cardOnPlace2);
         assertNotSame(cardOnPlace4, cardOnPlace1);
@@ -182,7 +186,7 @@ public class CivilizationCardPlaceTest extends TestCase {
         assertTrue(civilizationCardPlace2.placeFigures(player3, 1));
     }
 
-    public void testMakeAction(){
+    public void testMakeAction() throws NoSuchFieldException, IllegalAccessException {
 
         //Try to make action without any figure
         assertEquals(HasAction.NO_ACTION_POSSIBLE, civilizationCardPlace4.tryToMakeAction(player1));
@@ -204,12 +208,28 @@ public class CivilizationCardPlaceTest extends TestCase {
 
         assertTrue(civilizationCardPlace2.placeFigures(player3, 1));
 
-        //Check which cardPlaces needs new cards
+        //Check if all card places will return false, because cardDeck isn't empty
         assertFalse(civilizationCardPlace1.newTurn());
         assertFalse(civilizationCardPlace2.newTurn());
         assertFalse(civilizationCardPlace3.newTurn());
         assertFalse(civilizationCardPlace4.newTurn());
 
+        //Get cardDeck to make it empty and check if newTurn() will return true
+        Field deck = CivilizationCardPlace.class.getDeclaredField("cardDeck");
+        deck.setAccessible(true);
+        CivilizationCardDeck toMakeEmpty = (CivilizationCardDeck) deck.get(civilizationCardPlace2);
+        Optional<CivilizationCard> last = toMakeEmpty.getTop();
+        while (last.isPresent()){
+            last = toMakeEmpty.getTop();
+        }
+        player3.getPlayerBoard().giveEffect(List.of(Effect.STONE, Effect.WOOD));
+        assertEquals(HasAction.AUTOMATIC_ACTION_DONE, civilizationCardPlace2.tryToPlaceFigures(player3, 1));
+        assertEquals(ActionResult.ACTION_DONE, civilizationCardPlace2.makeAction(player3, List.of(Effect.STONE, Effect.WOOD), List.of(Effect.WOOD, Effect.WOOD)));
+        //NewTurn()
+        assertFalse(civilizationCardPlace1.newTurn());
+        assertFalse(civilizationCardPlace2.newTurn());
+        assertFalse(civilizationCardPlace3.newTurn());
+        assertTrue(civilizationCardPlace4.newTurn());
     }
 
     public void testPayForCard() throws NoSuchFieldException, IllegalAccessException {
