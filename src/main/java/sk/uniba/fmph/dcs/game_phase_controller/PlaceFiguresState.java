@@ -1,7 +1,6 @@
 package sk.uniba.fmph.dcs.game_phase_controller;
 
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 
 import sk.uniba.fmph.dcs.stone_age.*;
 
@@ -19,6 +18,8 @@ public class PlaceFiguresState implements InterfaceGamePhaseState {
      * Maps game locations to their corresponding figure placement handlers
      */
     private final Map<Location, InterfaceFigureLocation> places;
+    private final Map<PlayerOrder, Boolean> playerCanPlace;
+
     
     /**
      * Creates a new PlaceFiguresState with the given location mappings
@@ -27,6 +28,7 @@ public class PlaceFiguresState implements InterfaceGamePhaseState {
      */
     public PlaceFiguresState(Map<Location, InterfaceFigureLocation> places) {
         this.places = places;
+        playerCanPlace = new HashMap<>();
     }
 
     /**
@@ -43,10 +45,13 @@ public class PlaceFiguresState implements InterfaceGamePhaseState {
         if (place == null) {
             return ActionResult.FAILURE;
         }
-        
-        return place.placeFigures(player, figuresCount) 
-            ? ActionResult.ACTION_DONE 
-            : ActionResult.FAILURE;
+
+        if(place.placeFigures(player, figuresCount)){
+            playerCanPlace.put(player, false);
+            return ActionResult.ACTION_DONE;
+        }else{
+            return ActionResult.FAILURE;
+        }
     }
 
     /**
@@ -58,13 +63,11 @@ public class PlaceFiguresState implements InterfaceGamePhaseState {
      */
     @Override
     public HasAction tryToMakeAutomaticAction(PlayerOrder player) {
-        for (InterfaceFigureLocation place : places.values()) {
-            HasAction result = place.tryToPlaceFigures(player, 1);
-            if (result == HasAction.WAITING_FOR_PLAYER_ACTION) {
-                return HasAction.WAITING_FOR_PLAYER_ACTION;
-            }
+        if(playerCanPlace.containsKey(player) && !playerCanPlace.get(player)){
+            playerCanPlace.put(player, true);
+            return HasAction.NO_ACTION_POSSIBLE;
         }
-        return HasAction.NO_ACTION_POSSIBLE;
+        return HasAction.WAITING_FOR_PLAYER_ACTION;
     }
 
     // The following methods return FAILURE as they are not valid actions during the Place Figures phase

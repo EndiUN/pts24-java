@@ -11,11 +11,12 @@ public class CurrentThrow implements InterfaceToolUse {
     private int throwResult;
     private Player player;
     private boolean finishedUseTool;
+    private int[] dicesResults;
 
-    public CurrentThrow(Player player, Effect effect, int dices){
+    public void initiate(Player player, Effect effect, int dices){
         this.throwsFor = effect;
         this.player = player;
-        int[] dicesResults =  Throw.throw_(dices);
+        dicesResults =  Throw.throw_(dices);
         this.throwResult = Arrays.stream(dicesResults).reduce(0, Integer::sum);
         this.finishedUseTool = false;
     }
@@ -26,7 +27,7 @@ public class CurrentThrow implements InterfaceToolUse {
             return false;
         }
 
-        Optional<Integer> toolValue = player.playerBoard().useTool(idx);
+        Optional<Integer> toolValue = player.getPlayerBoard().useTool(idx);
         if(toolValue.isPresent()){
             throwResult += toolValue.get();
             return true;
@@ -37,7 +38,7 @@ public class CurrentThrow implements InterfaceToolUse {
 
     @Override
     public boolean canUseTools() {
-        return player.playerBoard().hasSufficientTools(1);
+        return player.getPlayerBoard().hasSufficientTools(1);
     }
 
     @Override
@@ -46,37 +47,41 @@ public class CurrentThrow implements InterfaceToolUse {
             return false;
         }
 
+        if(!throwsFor.isResourceOrFood()){
+            return false;
+        }
+
         List<Effect> obtainedResources = new ArrayList<>();
         switch (throwsFor){
             case FOOD ->{
-                for(int i = 0; i < throwResult/throwsFor.points(); i++){
+                for(int i = 0; i < throwResult/Effect.FOOD.points(); i++){
                     obtainedResources.add(Effect.FOOD);
                 }
             }
             case WOOD -> {
-                for (int i = 0; i < throwResult/throwsFor.points(); i++){
+                for (int i = 0; i < throwResult/Effect.WOOD.points(); i++){
                     obtainedResources.add(Effect.WOOD);
                 }
             }
             case CLAY -> {
-                for(int i = 0; i < throwResult/throwsFor.points(); i++){
+                for(int i = 0; i < throwResult/Effect.CLAY.points(); i++){
                     obtainedResources.add(Effect.CLAY);
                 }
             }
             case STONE -> {
-                for(int i = 0; i < throwResult/throwsFor.points(); i++){
+                for(int i = 0; i < throwResult/Effect.STONE.points(); i++){
                     obtainedResources.add(Effect.STONE);
                 }
             }
             case GOLD -> {
-                for(int i = 0; i < throwResult/throwsFor.points(); i++){
+                for(int i = 0; i < throwResult/Effect.GOLD.points(); i++){
                     obtainedResources.add(Effect.GOLD);
                 }
             }
         }
 
         finishedUseTool = true;
-        player.playerBoard().giveEffect(obtainedResources);
+        player.getPlayerBoard().giveEffect(obtainedResources);
         return true;
     }
 

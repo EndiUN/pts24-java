@@ -32,7 +32,7 @@ public class PlayerBoard implements InterfaceGetState {
         this.playerFigures = new PlayerFigures();
         this.playerTools = new PlayerTools();
         this.playerCivilisationCards = new PlayerCivilizationCards();
-        this.tribeFedStatus = new TribeFedStatus(this.playerFigures);
+        this.tribeFedStatus = new TribeFedStatus(this.playerFigures, this.playerResourcesAndFood);
 
         this.points = 0;
         this.houses = 0;
@@ -146,4 +146,6 @@ public class PlayerBoard implements InterfaceGetState {
                 + this.playerFigures.state() + "\n" + this.playerTools.state() + "\n"
                 + this.playerCivilisationCards.state() + "\n" + this.tribeFedStatus.state();
     }
+
+
 }

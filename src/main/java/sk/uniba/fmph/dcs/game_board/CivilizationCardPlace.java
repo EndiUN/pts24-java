@@ -1,37 +1,37 @@
 package sk.uniba.fmph.dcs.game_board;
 
 import org.json.JSONObject;
+import sk.uniba.fmph.dcs.player_board.PlayerBoardGameBoardFacade;
 import sk.uniba.fmph.dcs.stone_age.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
-public class CivilizationCardPlace implements InterfaceFigureLocationInternal{
+public class CivilizationCardPlace implements InterfaceFigureLocationInternal, InterfaceGetState{
     private final int requiredResources;
     private final ArrayList<PlayerOrder> figures = new ArrayList<>();
     private Optional<CivilizationCard> cardOfThisPlace = Optional.empty();
     private final CivilizationCardDeck cardDeck;
     private final CivilizationCardPlace next;
     private EvaluateCivilizationCardImmediateEffect performer;
-    public CivilizationCardPlace(final CivilizationCardPlace next ,final CivilizationCardDeck cardDeck, int requiredResources){
+    private boolean first = false;
+    private int sum;
+    public CivilizationCardPlace(final CivilizationCardPlace next, final CivilizationCardDeck cardDeck, final int requiredResources){
         this.cardDeck = cardDeck;
         this.requiredResources = requiredResources;
+        if(this.requiredResources == 1){
+            first = true;
+        }
         this.next = next;
         this.performer = null;
         this.cardOfThisPlace = placeCard();
     }
-
-    public int getRequiredResources() {
-        return requiredResources;
-    }
-
     public Optional<CivilizationCard> placeCard(){
         if(cardOfThisPlace.isPresent()){
             Optional<CivilizationCard> toReturn = this.cardOfThisPlace;
-            this.cardOfThisPlace = Optional.empty();
-            this.cardOfThisPlace =  this.placeCard();
+            if(!first) {
+                this.cardOfThisPlace = Optional.empty();
+                this.cardOfThisPlace = this.placeCard();
+            }
             return toReturn;
         }
         if(next != null){
@@ -47,7 +47,7 @@ public class CivilizationCardPlace implements InterfaceFigureLocationInternal{
             return false;
         }
 
-        if(!player.playerBoard().hasFigures(figureCount)){
+        if(!player.getPlayerBoard().hasFigures(figureCount)){
             return false;
         }
 
@@ -55,8 +55,8 @@ public class CivilizationCardPlace implements InterfaceFigureLocationInternal{
             return false;
         }
 
-        player.playerBoard().takeFigures(1);
-        figures.add(player.playerOrder());
+        player.getPlayerBoard().takeFigures(1);
+        figures.add(player.getPlayerOrder());
         return true;
     }
 
@@ -69,11 +69,12 @@ public class CivilizationCardPlace implements InterfaceFigureLocationInternal{
     }
 
     @Override
-    public ActionResult makeAction(Player player, Effect[] inputResources, Effect[] outputResources) {
-        if(!figures.contains(player.playerOrder())){
+    public ActionResult makeAction(Player player, Collection<Effect> inputResources, Collection<Effect> outputResources) {
+
+        if(!figures.contains(player.getPlayerOrder())){
             return ActionResult.FAILURE;
         }
-        if(inputResources.length != requiredResources){
+        if(inputResources.size() != requiredResources){
             return ActionResult.FAILURE;
         }
 
@@ -88,101 +89,97 @@ public class CivilizationCardPlace implements InterfaceFigureLocationInternal{
             return ActionResult.FAILURE;
         }
 
-        if(!player.playerBoard().takeResources(List.of(inputResources))){
+        if(!player.getPlayerBoard().takeResources(inputResources)){
             return ActionResult.FAILURE;
         }
 
         if(cardOfThisPlace.isPresent()) {
             List<ImmediateEffect> immediateEffects = cardOfThisPlace.get().getImmediateEffectType();
             for(ImmediateEffect immediateEffect: immediateEffects){
-                boolean result = true;
                 switch (immediateEffect){
                     case ThrowGold -> {
                         performer = new GetSomethingThrow(Effect.GOLD);
-                        result = performer.performEffect(player, Effect.GOLD);
+                        performer.performEffect(player, Effect.GOLD);
                     }
                     case ThrowStone -> {
                         performer = new GetSomethingThrow(Effect.STONE);
-                        result = performer.performEffect(player, Effect.STONE);
+                        performer.performEffect(player, Effect.STONE);
                     }
                     case ThrowClay -> {
                         performer = new GetSomethingThrow(Effect.CLAY);
-                        result = performer.performEffect(player, Effect.CLAY);
+                        performer.performEffect(player, Effect.CLAY);
                     }
                     case ThrowWood -> {
                         performer = new GetSomethingThrow(Effect.WOOD);
-                        result = performer.performEffect(player, Effect.WOOD);
+                        performer.performEffect(player, Effect.WOOD);
                     }
                     case POINT -> {
-                        performer = new GetSomethingFixed();
-                        result = performer.performEffect(player, Effect.POINT);
+                        PlayerBoardGameBoardFacade playerBoard = (PlayerBoardGameBoardFacade) player.getPlayerBoard();
+                        playerBoard.addPoints(1);
                     }
                     case WOOD -> {
                         performer = new GetSomethingFixed();
-                        result = performer.performEffect(player, Effect.WOOD);
+                        performer.performEffect(player, Effect.WOOD);
                     }
                     case CLAY -> {
                         performer = new GetSomethingFixed();
-                        result = performer.performEffect(player, Effect.CLAY);
+                        performer.performEffect(player, Effect.CLAY);
                     }
                     case STONE -> {
                         performer = new GetSomethingFixed();
-                        result = performer.performEffect(player, Effect.STONE);
+                        performer.performEffect(player, Effect.STONE);
                     }
                     case GOLD -> {
                         performer = new GetSomethingFixed();
-                        result = performer.performEffect(player, Effect.GOLD);
+                        performer.performEffect(player, Effect.GOLD);
                     }
                     case CARD -> {
                         performer = new GetCard(cardDeck);
-                        result = performer.performEffect(player, null);
+                        performer.performEffect(player, null);
                     }
                     case FOOD -> {
                         performer = new GetSomethingFixed();
-                        result = performer.performEffect(player, Effect.FOOD);
+                        performer.performEffect(player, Effect.FOOD);
                     }
                     case ArbitraryResource -> {
                         performer = new GetSomethingChoice(2);
-                        if(outputResources.length == 0){
+                        if(outputResources.isEmpty()){
                             return ActionResult.FAILURE;
                         }
-                        result = performer.performEffect(player, outputResources[0]);
+                        performer.performEffect(player, outputResources.stream().toList().get(0));
                     }
                     case AllPlayersTakeReward -> {
                         performer = new AllPlayersTakeReward();
-                        result = performer.performEffect(player, null);
+                        performer.performEffect(player, null);
                     }
-                    case Tool -> player.playerBoard().giveEffect(List.of(Effect.TOOL));
-                    case Field -> player.playerBoard().giveEffect(List.of(Effect.FIELD));
-                    case OneTimeTool2 -> player.playerBoard().giveEffect(List.of(Effect.ONE_TIME_TOOL2));
-                    case OneTimeTool3 -> player.playerBoard().giveEffect(List.of(Effect.ONE_TIME_TOOL3));
-                    case OneTimeTool4 -> player.playerBoard().giveEffect(List.of(Effect.ONE_TIME_TOOL4));
-                }
-                if(!result){
-                    return ActionResult.FAILURE;
+                    case Tool -> player.getPlayerBoard().giveEffect(List.of(Effect.TOOL));
+                    case Field -> player.getPlayerBoard().giveEffect(List.of(Effect.FIELD));
+                    case OneTimeTool2 -> player.getPlayerBoard().giveEffect(List.of(Effect.ONE_TIME_TOOL2));
+                    case OneTimeTool3 -> player.getPlayerBoard().giveEffect(List.of(Effect.ONE_TIME_TOOL3));
+                    case OneTimeTool4 -> player.getPlayerBoard().giveEffect(List.of(Effect.ONE_TIME_TOOL4));
                 }
             }
-            player.playerBoard().giveEndOfGameEffect(cardOfThisPlace.get().getEndOfGameEffectType());
+            player.getPlayerBoard().giveEndOfGameEffect(cardOfThisPlace.get().getEndOfGameEffectType());
         }
 
         cardOfThisPlace = Optional.empty();
-        figures.remove(player.playerOrder());
+        figures.remove(player.getPlayerOrder());
         return ActionResult.ACTION_DONE;
     }
 
     @Override
     public boolean skipAction(Player player) {
-        if(!figures.contains(player.playerOrder())){
+        if(!figures.contains(player.getPlayerOrder())){
             return false;
         }
 
-        figures.remove(player.playerOrder());
+        figures.remove(player.getPlayerOrder());
         return true;
     }
 
     @Override
     public HasAction tryToMakeAction(Player player) {
-        if(!figures.contains(player.playerOrder())){
+        if(!figures.contains(player.getPlayerOrder())){
             return HasAction.NO_ACTION_POSSIBLE;
         }
         return HasAction.WAITING_FOR_PLAYER_ACTION;
@@ -190,12 +187,12 @@ public class CivilizationCardPlace implements InterfaceFigureLocationInternal{
 
     @Override
     public boolean newTurn() {
-        if(!figures.isEmpty()){
+        cardOfThisPlace = this.placeCard();
+        if(cardOfThisPlace.isEmpty()){
+            return true;
+        }else{
             return false;
         }
-
-        cardOfThisPlace = this.placeCard();
-        return true;
     }
 
 
@@ -210,9 +207,5 @@ public class CivilizationCardPlace implements InterfaceFigureLocationInternal{
 
         );
         return new JSONObject(state).toString();
-    }
-
-    public Optional<CivilizationCard> getCardOfThisPlace() {
-        return cardOfThisPlace;
     }
 }

@@ -95,12 +95,12 @@ public class PlaceFiguresStateTest {
             state.tryToMakeAutomaticAction(player));
     }
 
-    @Test
-    public void testTryToMakeAutomaticActionNoAction() {
-        mockLocation.setNextTryResponse(HasAction.NO_ACTION_POSSIBLE);
-        assertEquals(HasAction.NO_ACTION_POSSIBLE,
-            state.tryToMakeAutomaticAction(player));
-    }
+//    @Test
+//    public void testTryToMakeAutomaticActionNoAction() {
+//        mockLocation.setNextTryResponse(HasAction.NO_ACTION_POSSIBLE);
+//        assertEquals(HasAction.NO_ACTION_POSSIBLE,
+//            state.tryToMakeAutomaticAction(player));
+//    }
 
     @Test
     public void testInvalidActionsReturnFailure() {

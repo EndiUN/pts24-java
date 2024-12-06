@@ -84,7 +84,15 @@ public final class PlayerBoardGameBoardFacade implements InterfaceFeedTribe, Int
      */
     @Override
     public void giveEffect(final Collection<Effect> effects) {
-        this.playerBoard.getPlayerResourcesAndFood().giveResources(effects);
+        for(Effect effect: effects) {
+            switch (effect){
+                case TOOL -> this.playerBoard.getPlayerTools().addTool();
+                case ONE_TIME_TOOL2 -> this.playerBoard.getPlayerTools().addSingleUseTool(2);
+                case ONE_TIME_TOOL3 -> this.playerBoard.getPlayerTools().addSingleUseTool(3);
+                case ONE_TIME_TOOL4 -> this.playerBoard.getPlayerTools().addSingleUseTool(4);
+                default ->  this.playerBoard.getPlayerResourcesAndFood().giveResources(List.of(effect));
+            }
+        }
     }
 
     /**
@@ -163,9 +171,7 @@ public final class PlayerBoardGameBoardFacade implements InterfaceFeedTribe, Int
         value = (this.playerBoard.getPlayerTools().useTool(idx));
         return value;
     }
-
-    @Override
-    public void giveCard(CivilizationCard civilizationCard) {
-        return;
+    public PlayerBoard getPlayerBoard() {
+        return playerBoard;
     }
 }

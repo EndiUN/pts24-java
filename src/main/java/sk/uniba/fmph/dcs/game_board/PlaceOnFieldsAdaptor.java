@@ -2,9 +2,14 @@ package sk.uniba.fmph.dcs.game_board;
 
 import sk.uniba.fmph.dcs.stone_age.*;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-public class PlaceOnFieldsAdaptor implements InterfaceFigureLocationInternal {
+
+public class PlaceOnFieldsAdaptor implements InterfaceFigureLocationInternal, InterfaceGetState {
     private final ToolMakerHutFields fields;
+    private final List<PlayerOrder> usedPlayers = new ArrayList<>();
     /**
      * Constructs a new {@code PlaceOnFieldsAdaptor} with the specified {@link ToolMakerHutFields}.
      *
@@ -24,11 +29,10 @@ public class PlaceOnFieldsAdaptor implements InterfaceFigureLocationInternal {
      */
     @Override
     public boolean placeFigures(Player player, int figureCount) {
-        if(tryToPlaceFigures(player, figureCount).equals(HasAction.AUTOMATIC_ACTION_DONE)){
-            if(fields.placeOnFields(player)){
-                player.playerBoard().takeFigures(figureCount);
-                return true;
-            }
+        if(fields.placeOnFields(player)){
+            player.getPlayerBoard().takeFigures(figureCount);
+            usedPlayers.add(player.getPlayerOrder());
+            return true;
         }
         return false;
     }
@@ -42,7 +46,7 @@ public class PlaceOnFieldsAdaptor implements InterfaceFigureLocationInternal {
      */
     @Override
     public HasAction tryToPlaceFigures(Player player, int count) {
-        if(!player.playerBoard().hasFigures(count)){
+        if(!player.getPlayerBoard().hasFigures(count)){
             return HasAction.NO_ACTION_POSSIBLE;
         }
 
@@ -51,6 +55,10 @@ public class PlaceOnFieldsAdaptor implements InterfaceFigureLocationInternal {
         }
 
         if(!fields.canPlaceOnFields(player)){
+            return HasAction.NO_ACTION_POSSIBLE;
+        }
+
+        if(!placeFigures(player, count)){
             return HasAction.NO_ACTION_POSSIBLE;
         }
 
@@ -66,7 +74,7 @@ public class PlaceOnFieldsAdaptor implements InterfaceFigureLocationInternal {
      * @return an {@link ActionResult} indicating the outcome of the action
      */
     @Override
-    public ActionResult makeAction(Player player, Effect[] inputResources, Effect[] outputResources) {
+    public ActionResult makeAction(Player player, Collection<Effect> inputResources, Collection<Effect> outputResources) {
         if(fields.actionFields(player)){
             return ActionResult.ACTION_DONE;
         }
@@ -92,7 +100,10 @@ public class PlaceOnFieldsAdaptor implements InterfaceFigureLocationInternal {
      */
     @Override
     public HasAction tryToMakeAction(Player player) {
-        return null;
+        if(makeAction(player, List.of(new Effect[0]), List.of(new Effect[0])) == ActionResult.ACTION_DONE){
+            return HasAction.AUTOMATIC_ACTION_DONE;
+        }
+        return HasAction.NO_ACTION_POSSIBLE;
     }
 
     /**
@@ -103,7 +114,7 @@ public class PlaceOnFieldsAdaptor implements InterfaceFigureLocationInternal {
      */
     @Override
     public boolean newTurn() {
-        return false;
+        return fields.newTurn();
     }
     /**
      * Returns the current state of the fields location as a string.

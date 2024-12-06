@@ -5,7 +5,7 @@ import java.util.*;
 import org.json.JSONObject;
 import sk.uniba.fmph.dcs.stone_age.*;
 
-public final class ResourceSource implements InterfaceFigureLocationInternal {
+public final class ResourceSource implements InterfaceFigureLocationInternal, InterfaceGetState {
     private  String name;
     private final Effect resource;
     private  int maxFigures;
@@ -13,7 +13,7 @@ public final class ResourceSource implements InterfaceFigureLocationInternal {
     private  ArrayList<PlayerOrder> figures;
 
     private CurrentThrow currentThrow;
-    private Player curentPlayer;
+    private Player currentPlayer;
 
     private final int MAX_PLAYERS = 4;
     private final int NUMBER_OF_PLACES = 7;
@@ -24,7 +24,7 @@ public final class ResourceSource implements InterfaceFigureLocationInternal {
 
         this.resource = resource;
         this.currentThrow = null;
-        this.curentPlayer = null;
+        this.currentPlayer = null;
         switch (resource){
             case FOOD -> {
                 this.name = "Hunting";
@@ -76,10 +76,10 @@ public final class ResourceSource implements InterfaceFigureLocationInternal {
     }
     @Override
     public boolean placeFigures(Player player, int figureCount) {
-        if(!player.playerBoard().hasFigures(figureCount)){
+        if(!player.getPlayerBoard().hasFigures(figureCount)){
             return false;
         }
-        if(figures.contains(player.playerOrder())){
+        if(figures.contains(player.getPlayerOrder())){
             return false;
         }
         if(maxFigures - figures.size() < figureCount){
@@ -92,9 +92,9 @@ public final class ResourceSource implements InterfaceFigureLocationInternal {
         }
 
         for(int i = 0; i < figureCount; i++){
-            figures.add(player.playerOrder());
+            figures.add(player.getPlayerOrder());
         }
-        player.playerBoard().takeFigures(figureCount);
+        player.getPlayerBoard().takeFigures(figureCount);
         return true;
     }
 
@@ -107,11 +107,12 @@ public final class ResourceSource implements InterfaceFigureLocationInternal {
     }
 
     @Override
-    public ActionResult makeAction(Player player, Effect[] inputResources, Effect[] outputResources) {
-        if(curentPlayer == null && currentThrow == null){
+    public ActionResult makeAction(Player player, Collection<Effect> inputResources, Collection<Effect> outputResources) {
+
+        if(currentPlayer == null && currentThrow == null){
             int countPlayerFigures = 0;
             for(PlayerOrder playerOrder: figures){
-                if(playerOrder == player.playerOrder()){
+                if(playerOrder == player.getPlayerOrder()){
                     countPlayerFigures++;
                 }
             }
@@ -120,19 +121,21 @@ public final class ResourceSource implements InterfaceFigureLocationInternal {
                 return ActionResult.FAILURE;
             }
 
-            curentPlayer = player;
-            currentThrow = new CurrentThrow(player,resource, countPlayerFigures);
+            currentPlayer = player;
+            currentThrow = new CurrentThrow();
+            currentThrow.initiate(player,resource, countPlayerFigures);
             return ActionResult.ACTION_DONE_WAIT_FOR_TOOL_USE;
         }
 
-        if(player != curentPlayer){
+        if(player != currentPlayer){
             return ActionResult.FAILURE;
         }
 
-        if(inputResources.length == 0){
+        if(inputResources.isEmpty()){
             currentThrow.finishUsingTools();
             currentThrow = null;
-            curentPlayer = null;
+            currentPlayer = null;
+            figures.removeIf(playerOrder -> playerOrder == player.getPlayerOrder());
             return ActionResult.ACTION_DONE;
         }
 
@@ -151,12 +154,13 @@ public final class ResourceSource implements InterfaceFigureLocationInternal {
                 }
             }
         }
-        if(usedToolCount != inputResources.length){
+        if(usedToolCount != inputResources.size()){
             return ActionResult.FAILURE;
         }
 
-        figures.removeIf(playerOrder -> playerOrder == player.playerOrder());
-        curentPlayer = null;
+        figures.removeIf(playerOrder -> playerOrder == player.getPlayerOrder());
+        currentThrow.finishUsingTools();
+        currentPlayer = null;
         currentThrow = null;
         return ActionResult.ACTION_DONE;
     }
@@ -168,23 +172,23 @@ public final class ResourceSource implements InterfaceFigureLocationInternal {
 
     @Override
     public HasAction tryToMakeAction(Player player) {
-        if(curentPlayer == null && figures.contains(player.playerOrder())){
-            makeAction(player, new Effect[0], new Effect[0]);
+        if(currentPlayer == null && figures.contains(player.getPlayerOrder())){
+            makeAction(player, List.of(new Effect[0]), List.of(new Effect[0]));
             return HasAction.AUTOMATIC_ACTION_DONE;
         }
-        if(currentThrow.canUseTools() && this.curentPlayer == player){
+        if(currentThrow != null && currentThrow.canUseTools() && this.currentPlayer == player){
             return HasAction.WAITING_FOR_PLAYER_ACTION;
         }
+        figures.removeIf(playerOrder -> playerOrder == player.getPlayerOrder());
+        currentPlayer = null;
+        currentThrow = null;
         return HasAction.NO_ACTION_POSSIBLE;
     }
 
     @Override
     public boolean newTurn() {
-        if(figures.isEmpty()) {
-            this.currentThrow = null;
-            this.curentPlayer = null;
-            return true;
-        }
+        this.currentThrow = null;
+        this.currentPlayer = null;
         return false;
     }
 
@@ -196,7 +200,7 @@ public final class ResourceSource implements InterfaceFigureLocationInternal {
                 "maxFigureColors", maxFigureColors,
                 "figures", figures.stream().map(PlayerOrder::getOrder).toList(),
                 "currentThrow", currentThrow,
-                "currentPlayer", curentPlayer
+                "currentPlayer", currentPlayer
         );
         return new JSONObject(state).toString();
     }

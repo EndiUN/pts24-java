@@ -13,7 +13,6 @@ public class CivilizationCardDeck implements InterfaceGetState {
         for (CivilizationCard civilizationCard : allCards) {
             cardDeck.push(civilizationCard);
         }
-
     }
 
     public Optional<CivilizationCard> getTop(){

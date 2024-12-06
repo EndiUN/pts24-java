@@ -29,17 +29,20 @@ public class PlayerTools implements InterfaceGetState {
 
     public void addTool(){
         if(totalToolsCount < 12) {
-            totalToolsCount++;
             int position = totalToolsCount % 3;
             int value = 1 + totalToolsCount / 3;
             tools[position] = value;
+            totalToolsCount++;
+            roundToolsCount++;
         }
     }
 
     public boolean addSingleUseTool(int strength) {
-        for (int i = maxMultiplyUseTools - 1; i < tools.length; i++) {
+        for (int i = maxMultiplyUseTools; i < tools.length; i++) {
             if (tools[i] == -1) {
                 tools[i] = strength;
+                totalToolsCount += strength;
+                roundToolsCount += strength;
                 return true;
             }
         }

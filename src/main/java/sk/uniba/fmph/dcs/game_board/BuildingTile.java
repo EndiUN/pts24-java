@@ -1,23 +1,22 @@
 package sk.uniba.fmph.dcs.game_board;
 
-import sk.uniba.fmph.dcs.stone_age.PlayerOrder;
-import sk.uniba.fmph.dcs.stone_age.Effect;
-import sk.uniba.fmph.dcs.stone_age.Player;
-import sk.uniba.fmph.dcs.stone_age.HasAction;
-import sk.uniba.fmph.dcs.stone_age.ActionResult;
+import sk.uniba.fmph.dcs.player_board.PlayerBoardGameBoardFacade;
+import sk.uniba.fmph.dcs.stone_age.*;
 
 import java.util.*;
 
 import org.json.JSONObject;
 
-public class BuildingTile implements InterfaceFigureLocationInternal {
+public class BuildingTile implements InterfaceFigureLocationInternal, InterfaceGetState {
     private final Stack<Building> buildings;
     private final ArrayList<PlayerOrder> figures;
+    private Building building;
     private static final int MAX_FIGURES = 1;
 
-    public BuildingTile(List<Building> building) {
+    public BuildingTile(List<Building> buildings) {
         this.buildings = new Stack<>();
-        this.buildings.addAll(building);
+        this.buildings.addAll(buildings);
+        this.building = this.buildings.pop();
         this.figures = new ArrayList<>();
     }
 
@@ -26,7 +25,7 @@ public class BuildingTile implements InterfaceFigureLocationInternal {
         if (figureCount != MAX_FIGURES || !figures.isEmpty()) {
             return false;
         }
-        figures.add(player.playerOrder());
+        figures.add(player.getPlayerOrder());
         return true;
     }
 
@@ -35,37 +34,47 @@ public class BuildingTile implements InterfaceFigureLocationInternal {
         if (count != MAX_FIGURES || !figures.isEmpty()) {
             return HasAction.NO_ACTION_POSSIBLE;
         }
-        if (!player.playerBoard().hasFigures(count)) {
+        if (!player.getPlayerBoard().hasFigures(count)) {
             return HasAction.NO_ACTION_POSSIBLE;
         }
-        return HasAction.WAITING_FOR_PLAYER_ACTION;
+
+        if(!placeFigures(player, count)){
+            return HasAction.NO_ACTION_POSSIBLE;
+        }
+        return HasAction.AUTOMATIC_ACTION_DONE;
     }
 
     @Override
-    public ActionResult makeAction(Player player, Effect[] inputResources, Effect[] outputResources) {
-        if (figures.isEmpty() || !figures.get(0).equals(player.playerOrder())) {
+    public ActionResult makeAction(Player player, Collection<Effect> inputResources, Collection<Effect> outputResources) {
+        if (figures.isEmpty() || !figures.get(0).equals(player.getPlayerOrder())) {
             return ActionResult.FAILURE;
         }
-
-        Collection<Effect> resources = List.of(inputResources);
 
         if(buildings.isEmpty()){
             return ActionResult.FAILURE;
         }
-        OptionalInt points = buildings.pop().build(resources);
-
-        // Give points to player
-        List<Effect> pointsToGive = new ArrayList<>();
-        for(int i=0; i<points.getAsInt(); i++){
-            pointsToGive.add(Effect.POINT);
+        if(!player.getPlayerBoard().takeResources(inputResources)){
+            return ActionResult.FAILURE;
         }
-        player.playerBoard().giveEffect(pointsToGive);
+
+        player.getPlayerBoard().takeResources(inputResources);
+
+        OptionalInt points = building.build(inputResources);
+
+        if(points.isEmpty()){
+            return ActionResult.FAILURE;
+        }
+        PlayerBoardGameBoardFacade playerBoard = (PlayerBoardGameBoardFacade) player.getPlayerBoard();
+        playerBoard.addPoints(points.getAsInt());
+
+        building = null;
+        figures.remove(player.getPlayerOrder());
         return ActionResult.ACTION_DONE;
     }
 
     @Override
     public boolean skipAction(Player player) {
-        if (figures.isEmpty() || !figures.get(0).equals(player.playerOrder())) {
+        if (figures.isEmpty() || !figures.get(0).equals(player.getPlayerOrder())) {
             return false;
         }
         figures.clear();
@@ -74,7 +83,7 @@ public class BuildingTile implements InterfaceFigureLocationInternal {
 
     @Override
     public HasAction tryToMakeAction(Player player) {
-        if (figures.isEmpty() || !figures.get(0).equals(player.playerOrder())) {
+        if (figures.isEmpty() || !figures.get(0).equals(player.getPlayerOrder())) {
             return HasAction.NO_ACTION_POSSIBLE;
         }
         return HasAction.WAITING_FOR_PLAYER_ACTION;
@@ -86,7 +95,14 @@ public class BuildingTile implements InterfaceFigureLocationInternal {
             return true;
         }
         figures.clear();
+        if(building == null){
+            building = buildings.pop();
+        }
         return false;
+    }
+
+    public Building getBuilding() {
+        return building;
     }
 
     public String state() {

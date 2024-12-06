@@ -187,7 +187,7 @@ Implements civilisation card deck.
 
 ### RewardMenu class
 
-Represents the choices available in All Players Take A Reward imediate civilisation card effect.
+Represents the choices available in All Players Take A Reward immediate civilisation card effect.
 
 *Unit tests:* Yes. 
 

@@ -11,7 +11,7 @@ public class GetSomethingFixed implements EvaluateCivilizationCardImmediateEffec
 
     @Override
     public boolean performEffect(final Player player, final Effect choice) {
-        player.playerBoard().giveEffect(List.of(choice));
+        player.getPlayerBoard().giveEffect(List.of(choice));
         return true;
     }
 }

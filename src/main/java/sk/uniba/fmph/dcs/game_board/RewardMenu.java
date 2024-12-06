@@ -4,6 +4,7 @@ import org.json.JSONObject;
 import sk.uniba.fmph.dcs.stone_age.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +19,7 @@ import java.util.Map;
 public class RewardMenu implements InterfaceTakeReward {
 
     private ArrayList<Effect> rewards;
-    private Player[] players;
+    private ArrayList<Player> players;
     private ArrayList<PlayerOrder> remainingPlayers;
 
     /**
@@ -27,11 +28,12 @@ public class RewardMenu implements InterfaceTakeReward {
      *
      * @param players an array of players participating in the reward menu
      */
-    public RewardMenu(Player[] players) {
-        this.players = players;
+    public RewardMenu(Collection<Player> players) {
+        this.players = new ArrayList<>(players);
         this.remainingPlayers = new ArrayList<>();
+        this.rewards = new ArrayList<>();
         for (Player player : players) {
-            remainingPlayers.add(player.playerOrder());
+            remainingPlayers.add(player.getPlayerOrder());
         }
     }
 
@@ -61,10 +63,10 @@ public class RewardMenu implements InterfaceTakeReward {
             return false;
         }
         for (Player p : players) {
-            if (p.playerOrder().equals(player)) {
+            if (p.getPlayerOrder().equals(player)) {
                 remainingPlayers.remove(player);
                 rewards.remove(reward);
-                p.playerBoard().giveEffect(List.of(reward));
+                p.getPlayerBoard().giveEffect(List.of(reward));
                 return true;
             }
         }
@@ -92,8 +94,8 @@ public class RewardMenu implements InterfaceTakeReward {
         }
         if (rewards.size() == 1) {
             for (Player p : players) {
-                if (p.playerOrder().equals(player)) {
-                    p.playerBoard().giveEffect(rewards);
+                if (p.getPlayerOrder().equals(player)) {
+                    p.getPlayerBoard().giveEffect(rewards);
                     remainingPlayers.remove(player);
                     return HasAction.AUTOMATIC_ACTION_DONE;
                 }
@@ -101,6 +103,7 @@ public class RewardMenu implements InterfaceTakeReward {
         }
         return HasAction.WAITING_FOR_PLAYER_ACTION;
     }
+
 
     /**
      * Returns a JSON string representing the current state of the reward menu.

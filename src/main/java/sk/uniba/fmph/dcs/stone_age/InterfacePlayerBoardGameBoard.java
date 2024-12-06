@@ -14,5 +14,4 @@ public interface InterfacePlayerBoardGameBoard {
     boolean hasFigures(int count);
     boolean hasSufficientTools(int goal);
     Optional<Integer> useTool(int idx);
-    void giveCard(CivilizationCard civilizationCard);
 }

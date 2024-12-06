@@ -10,6 +10,8 @@ import java.util.List;
 public final class GetSomethingThrow implements EvaluateCivilizationCardImmediateEffect {
     private final Effect resource;
 
+    //This variable is for tests
+    private int sum;
     public GetSomethingThrow(final Effect resource) {
         this.resource = resource;
     }
@@ -20,12 +22,12 @@ public final class GetSomethingThrow implements EvaluateCivilizationCardImmediat
             return false;
         }
         int[] dicesResults = Throw.throw_(2);
-        int sum = Arrays.stream(dicesResults).reduce(0, Integer::sum);;
+        sum = Arrays.stream(dicesResults).reduce(0, Integer::sum);;
         List<Effect> toReturn = new ArrayList<>();
         for(int i = 0; i < sum/choice.points(); i++){
             toReturn.add(choice);
         }
-        player.playerBoard().giveEffect(toReturn);
+        player.getPlayerBoard().giveEffect(toReturn);
         return true;
     }
 }

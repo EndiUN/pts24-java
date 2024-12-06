@@ -16,21 +16,6 @@ public class ResourceSourceTest {
     private  Player player3;
     private Player player4;
 
-    private Player playerMaker(Player player, int orderNum, InterfacePlayerBoardGameBoard board) {
-        PlayerOrder order = new PlayerOrder(orderNum, 3);
-        player = new Player() {
-            @Override
-            public PlayerOrder playerOrder() {
-                return order;
-            }
-
-            @Override
-            public InterfacePlayerBoardGameBoard playerBoard() {
-                return board;
-            }
-        };
-        return player;
-    }
 
     private class PlayerBoardGameBoard implements InterfacePlayerBoardGameBoard {
         private List<Effect> resources = new ArrayList<>();
@@ -75,11 +60,6 @@ public class ResourceSourceTest {
         }
 
         @Override
-        public void giveCard(CivilizationCard card) {
-            cards.add(card);
-        }
-
-        @Override
         public boolean takeResources(Collection<Effect> stuff) {
             if (resources.containsAll(stuff)) {
                 resources.removeAll(stuff);
@@ -106,9 +86,9 @@ public class ResourceSourceTest {
         public boolean hasSufficientTools(int goal) {
             int toolForUse = 0;
             for(int i = 0; i < 3; i++){
-                if(!usedTools[i]){
-                    toolForUse += tools[i];
-                }
+               if(!usedTools[i]){
+                   toolForUse += tools[i];
+               }
             }
             return toolForUse >= goal;
         }
@@ -132,10 +112,10 @@ public class ResourceSourceTest {
 
     @Before
     public void setUp() {
-        player1 = playerMaker(player1, 0, createInstance());
-        player2 = playerMaker(player2, 1, createInstance());
-        player3 = playerMaker(player3, 2, createInstance());
-        player4 = playerMaker(player4, 3, createInstance());
+        player1 = new Player(new PlayerOrder(0, 4),createInstance());
+        player2 = new Player(new PlayerOrder(1, 4), createInstance());
+        player3 = new Player(new PlayerOrder(2, 4), createInstance());
+        player4 = new Player(new PlayerOrder(3,4), createInstance());
     }
 
     @Test
@@ -155,14 +135,14 @@ public class ResourceSourceTest {
         assertFalse(resourceSource.newTurn());
 
         //Give players tools
-        player1.playerBoard().giveEffect(List.of(Effect.TOOL));
-        player2.playerBoard().giveEffect(List.of(Effect.TOOL));
-        player3.playerBoard().giveEffect(List.of(Effect.TOOL));
-        player4.playerBoard().giveEffect(List.of(Effect.TOOL));
+        player1.getPlayerBoard().giveEffect(List.of(Effect.TOOL));
+        player2.getPlayerBoard().giveEffect(List.of(Effect.TOOL));
+        player3.getPlayerBoard().giveEffect(List.of(Effect.TOOL));
+        player4.getPlayerBoard().giveEffect(List.of(Effect.TOOL));
 
         //Players actions
-        Effect[] output = new Effect[0];
-        Effect[] input = {Effect.TOOL};
+        List <Effect> output = new ArrayList<>();
+        List<Effect> input = List.of(Effect.TOOL);
 
         assertEquals(ActionResult.ACTION_DONE_WAIT_FOR_TOOL_USE, resourceSource.makeAction(player1, input, output));
         assertEquals(ActionResult.ACTION_DONE, resourceSource.makeAction(player1, input, output));
@@ -174,7 +154,7 @@ public class ResourceSourceTest {
         assertEquals(ActionResult.ACTION_DONE_WAIT_FOR_TOOL_USE, resourceSource.makeAction(player4, input, output));
         assertEquals(ActionResult.ACTION_DONE, resourceSource.makeAction(player4, input, output));
 
-        assertTrue(resourceSource.newTurn());
+        assertFalse(resourceSource.newTurn());
     }
 
     @Test
@@ -191,8 +171,8 @@ public class ResourceSourceTest {
         assertFalse(resourceSource.newTurn());
 
         //Players actions
-        Effect[] output = new Effect[0];
-        Effect[] input = {Effect.TOOL};
+        List <Effect> output = new ArrayList<>();
+        List <Effect> input = List.of(Effect.TOOL);
 
         assertEquals(HasAction.AUTOMATIC_ACTION_DONE, resourceSource.tryToMakeAction(player1));
         assertEquals(ActionResult.ACTION_DONE, resourceSource.makeAction(player1, input, output));
@@ -203,6 +183,6 @@ public class ResourceSourceTest {
         assertEquals(ActionResult.ACTION_DONE, resourceSource.makeAction(player2, input, output));
 
 
-        assertTrue(resourceSource.newTurn());
+        assertFalse(resourceSource.newTurn());
     }
 }

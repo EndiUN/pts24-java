@@ -3,17 +3,20 @@ package sk.uniba.fmph.dcs.stone_age;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import sk.uniba.fmph.dcs.player_board.PlayerFigures;
+import sk.uniba.fmph.dcs.player_board.PlayerResourcesAndFood;
 import sk.uniba.fmph.dcs.player_board.TribeFedStatus;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class TribeFedStatusTest {
     private TribeFedStatus status;
-    
+
     @Before
     public void setUp() {
-        status = new TribeFedStatus();
+        status = new TribeFedStatus(new PlayerFigures(), new PlayerResourcesAndFood());
     }
 
     @Test
@@ -38,8 +41,7 @@ public class TribeFedStatusTest {
 
     @Test
     public void testFeedTribeWithFood() {
-        Collection<Effect> food = new ArrayList<>();
-        food.add(Effect.FOOD);
+        Collection<Effect> food = List.of(Effect.FOOD,Effect.FOOD,Effect.FOOD,Effect.FOOD,Effect.FOOD);
         assertTrue(status.feedTribe(food));
         assertTrue(status.isTribeFed());
     }
@@ -53,11 +55,10 @@ public class TribeFedStatusTest {
 
     @Test
     public void testNewTurnResetsFedStatus() {
-        Collection<Effect> food = new ArrayList<>();
-        food.add(Effect.FOOD);
+        Collection<Effect> food = List.of(Effect.FOOD,Effect.FOOD,Effect.FOOD,Effect.FOOD,Effect.FOOD);
         status.feedTribe(food);
         assertTrue(status.isTribeFed());
-        
+
         status.newTurn();
         assertFalse(status.isTribeFed());
     }
@@ -72,6 +73,6 @@ public class TribeFedStatusTest {
     public void testFeedTribeIfEnoughFood() {
         // This would need integration with PlayerResourcesAndFood
         // to test properly, as it depends on available food resources
-        assertFalse(status.feedTribeIfEnoughFood());
+        assertTrue(status.feedTribeIfEnoughFood());
     }
 }

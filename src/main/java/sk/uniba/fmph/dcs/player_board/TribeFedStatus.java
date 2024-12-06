@@ -4,6 +4,7 @@ import org.json.JSONObject;
 import sk.uniba.fmph.dcs.player_board.PlayerFigures;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import sk.uniba.fmph.dcs.player_board.PlayerFigures;
 import sk.uniba.fmph.dcs.stone_age.Effect;
@@ -15,11 +16,13 @@ public final class TribeFedStatus implements InterfaceFeedTribe, InterfaceNewTur
     private static final int FOOD_PER_FIGURE = 1;
     
     private final PlayerFigures figures;
+    private final PlayerResourcesAndFood resourcesAndFood;
     private boolean tribeFed;
     private int fields;
 
-    public TribeFedStatus(PlayerFigures figures) {
+    public TribeFedStatus(PlayerFigures figures, PlayerResourcesAndFood resourcesAndFood) {
         this.figures = figures;
+        this.resourcesAndFood = resourcesAndFood;
         this.tribeFed = false;
         this.fields = 0;
     }
@@ -38,9 +41,15 @@ public final class TribeFedStatus implements InterfaceFeedTribe, InterfaceNewTur
         if (remainingFood == 0) {
             tribeFed = true;
             return true;
+        }else{
+            for(int i = 0; i < remainingFood; i++){
+                if(!resourcesAndFood.takeResources(List.of(Effect.FOOD))){
+                    return false;
+                }
+            }
         }
-
-        return false;
+        tribeFed = true;
+        return true;
     }
 
     @Override
@@ -56,8 +65,8 @@ public final class TribeFedStatus implements InterfaceFeedTribe, InterfaceNewTur
         // Count food resources provided
         int foodProvided = 0;
         for (Effect resource : resources) {
-            if (resource != Effect.FOOD) {
-                return false; // Only food resources allowed
+            if (!resource.isResourceOrFood()) {
+                return false;
             }
             foodProvided++;
         }

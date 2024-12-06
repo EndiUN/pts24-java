@@ -3,138 +3,89 @@ package sk.uniba.fmph.dcs.game_phase_controller;
 import junit.framework.TestCase;
 import org.junit.Test;
 
+import sk.uniba.fmph.dcs.player_board.PlayerBoard;
+import sk.uniba.fmph.dcs.player_board.PlayerBoardGameBoardFacade;
 import sk.uniba.fmph.dcs.stone_age.*;
 
 import java.util.*;
 
 public class FeedTribeStateTest extends TestCase {
-private Map<PlayerOrder, InterfaceFeedTribe> tribes;
-    private class MockFeedTribe implements InterfaceFeedTribe {
-        private int figures;
-        private boolean feedTribeSuccess;
-        private boolean doNotFeedSuccess;
-        private boolean isTribeFed;
-
-        public MockFeedTribe(int figures, boolean feedTribeSuccess, boolean doNotFeedSuccess, boolean isTribeFed) {
-            this.figures = figures;
-            this.feedTribeSuccess = feedTribeSuccess;
-            this.doNotFeedSuccess = doNotFeedSuccess;
-            this.isTribeFed = isTribeFed;
-        }
-
-        @Override
-        public boolean feedTribeIfEnoughFood() {
-            return feedTribeSuccess;
-        }
-
-        @Override
-        public boolean feedTribe(Collection<Effect> resources) {
-            if(resources.size() >= figures) {
-                feedTribeSuccess = true;
-                isTribeFed = true;
-                return feedTribeSuccess;
-            }
-            return false;
-        }
-
-        @Override
-        public boolean doNotFeedThisTurn() {
-            if(feedTribeSuccess){
-                return false;
-            }
-            return doNotFeedSuccess;
-        }
-
-        @Override
-        public boolean isTribeFed() {
-            return isTribeFed;
-        }
-    }
-
+private List<Player> tribes;
+private Player player1;
+private Player player2;
+private Player player3;
     public void setUp(){
-        tribes = new HashMap<>();
+        tribes = new ArrayList<>();
+        player1 = new Player(new PlayerOrder(0, 3),new PlayerBoardGameBoardFacade(new PlayerBoard()));
+        player2 = new Player(new PlayerOrder(1, 3),new PlayerBoardGameBoardFacade(new PlayerBoard()));
+        player3 = new Player(new PlayerOrder(2, 3),new PlayerBoardGameBoardFacade(new PlayerBoard()));
+        tribes.add(player1);
+        tribes.add(player2);
+        tribes.add(player3);
     }
 
     public void testFeedTribeSuccess(){
 
-        PlayerOrder player1 = new PlayerOrder(1, 3);
-        InterfaceFeedTribe mockTribe1 = new MockFeedTribe(0,true,false,false);
-        tribes.put(player1, mockTribe1);
-
-        PlayerOrder player2 = new PlayerOrder(2, 3);
-        InterfaceFeedTribe mockTribe2 = new MockFeedTribe(2, false, false,false);
-        tribes.put(player2, mockTribe2);
-
-        PlayerOrder player3 = new PlayerOrder(3, 3);
-        InterfaceFeedTribe mockTribe3 = new MockFeedTribe(0, true, false,false);
-        tribes.put(player3, mockTribe3);
-
         FeedTribeState feedTribeState = new FeedTribeState(tribes);
 
-        ActionResult result1 = feedTribeState.feedTribe(player1, List.of(Effect.FOOD));
+        //Feed tribe with given resources
+        ActionResult result1 = feedTribeState.feedTribe(player1.getPlayerOrder(), List.of(Effect.FOOD, Effect.FOOD,Effect.FOOD,Effect.FOOD,Effect.FOOD));
         assertEquals(ActionResult.ACTION_DONE, result1);
 
-        ActionResult result2 = feedTribeState.feedTribe(player2, List.of(Effect.FOOD));
+        ActionResult result2 = feedTribeState.feedTribe(player2.getPlayerOrder(), List.of(Effect.FOOD));
         assertEquals(ActionResult.FAILURE, result2);
 
-        ActionResult result3 = feedTribeState.feedTribe(player3, List.of(Effect.FOOD));
+        ActionResult result3 = feedTribeState.feedTribe(player3.getPlayerOrder(), List.of(Effect.FOOD, Effect.FOOD, Effect.FOOD, Effect.FOOD, Effect.FOOD));
         assertEquals(ActionResult.ACTION_DONE, result3);
     }
 
     public void testDoNotFeedThisTurn(){
 
-        PlayerOrder player1 = new PlayerOrder(1, 3);
-        InterfaceFeedTribe mockTribe1 = new MockFeedTribe(0,true,true,false);
-        tribes.put(player1, mockTribe1);
-
-        PlayerOrder player2 = new PlayerOrder(2, 3);
-        InterfaceFeedTribe mockTribe2 = new MockFeedTribe(2, false, true,false);
-        tribes.put(player2, mockTribe2);
-
-        PlayerOrder player3 = new PlayerOrder(3, 3);
-        InterfaceFeedTribe mockTribe3 = new MockFeedTribe(3, true, true,false);
-        tribes.put(player3, mockTribe3);
-
         FeedTribeState feedTribeState = new FeedTribeState(tribes);
 
-        ActionResult result1 = feedTribeState.doNotFeedThisTurn(player1);
+        //DoNotFeedThisTurn when tribe has been already fed
+        assertEquals(ActionResult.ACTION_DONE, feedTribeState.feedTribe(player1.getPlayerOrder(),List.of(Effect.FOOD, Effect.FOOD,Effect.FOOD,Effect.FOOD,Effect.FOOD)));
+        ActionResult result1 = feedTribeState.doNotFeedThisTurn(player1.getPlayerOrder());
         assertEquals(ActionResult.FAILURE, result1);
 
-        feedTribeState.feedTribe(player2, List.of(Effect.FOOD));
-        ActionResult result2 = feedTribeState.doNotFeedThisTurn(player2);
+        //DoNotFeedThisTurn action
+        for(int i = 0; i < 9; i++){
+            //Delete starter food
+            assertTrue(player3.getPlayerBoard().takeResources(List.of(Effect.FOOD)));
+        }
+        feedTribeState.feedTribe(player2.getPlayerOrder(), List.of(Effect.FOOD));
+        ActionResult result2 = feedTribeState.doNotFeedThisTurn(player2.getPlayerOrder());
         assertEquals(ActionResult.ACTION_DONE, result2);
 
-        feedTribeState.feedTribe(player3, List.of(Effect.FOOD, Effect.CLAY, Effect.STONE));
-        ActionResult result3 = feedTribeState.doNotFeedThisTurn(player3);
+        //Feed tribe with other resources, because player doesn't have enough food
+        feedTribeState.feedTribe(player3.getPlayerOrder(), List.of(Effect.FOOD, Effect.CLAY, Effect.STONE, Effect.WOOD, Effect.GOLD));
+        ActionResult result3 = feedTribeState.doNotFeedThisTurn(player3.getPlayerOrder());
         assertEquals(ActionResult.FAILURE, result3);
     }
 
     public void testAutomaticAction(){
-        PlayerOrder player1 = new PlayerOrder(1, 3);
-        InterfaceFeedTribe mockTribe1 = new MockFeedTribe(0,true,true,false);
-        tribes.put(player1, mockTribe1);
-
-        PlayerOrder player2 = new PlayerOrder(2, 3);
-        InterfaceFeedTribe mockTribe2 = new MockFeedTribe(2, true, true,true);
-        tribes.put(player2, mockTribe2);
-
-        PlayerOrder player3 = new PlayerOrder(3, 3);
-        InterfaceFeedTribe mockTribe3 = new MockFeedTribe(3, false, true,false);
-        tribes.put(player3, mockTribe3);
-
         FeedTribeState feedTribeState = new FeedTribeState(tribes);
 
-        HasAction result1 = feedTribeState.tryToMakeAutomaticAction(player1);
+        //Try to make automatic action
+        HasAction result1 = feedTribeState.tryToMakeAutomaticAction(player1.getPlayerOrder());
         assertEquals(HasAction.AUTOMATIC_ACTION_DONE, result1);
 
-        HasAction result2 = feedTribeState.tryToMakeAutomaticAction(player2);
+        //Try to make automatic action when tribe has been already fed
+        assertEquals(ActionResult.ACTION_DONE, feedTribeState.feedTribe(player2.getPlayerOrder(),List.of(Effect.FOOD, Effect.FOOD,Effect.FOOD,Effect.FOOD,Effect.FOOD)));
+        HasAction result2 = feedTribeState.tryToMakeAutomaticAction(player2.getPlayerOrder());
         assertEquals(HasAction.NO_ACTION_POSSIBLE, result2);
 
-        HasAction result3 = feedTribeState.tryToMakeAutomaticAction(player3);
+        //Try to do automatic action while tribe doesn't have enough food
+        for(int i = 0; i < 9; i++){
+            //Delete starter food
+            assertTrue(player3.getPlayerBoard().takeResources(List.of(Effect.FOOD)));
+        }
+        HasAction result3 = feedTribeState.tryToMakeAutomaticAction(player3.getPlayerOrder());
         assertEquals(HasAction.WAITING_FOR_PLAYER_ACTION, result3);
 
-        feedTribeState.feedTribe(player3, List.of(Effect.FOOD, Effect.FOOD, Effect.FOOD));
-        HasAction result4 = feedTribeState.tryToMakeAutomaticAction(player3);
+        //Try to make automatic action after player fed his tribe
+        assertEquals(ActionResult.ACTION_DONE, feedTribeState.feedTribe(player3.getPlayerOrder(), List.of(Effect.FOOD, Effect.FOOD, Effect.FOOD, Effect.FOOD, Effect.FOOD)));
+        HasAction result4 = feedTribeState.tryToMakeAutomaticAction(player3.getPlayerOrder());
         assertEquals(HasAction.NO_ACTION_POSSIBLE, result4);
     }
 

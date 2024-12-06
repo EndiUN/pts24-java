@@ -6,6 +6,6 @@ import sk.uniba.fmph.dcs.stone_age.Player;
 public class AllPlayersTakeReward implements EvaluateCivilizationCardImmediateEffect {
     @Override
     public boolean performEffect(Player player, Effect choice) {
-        return false;
+        return true;
     }
 }

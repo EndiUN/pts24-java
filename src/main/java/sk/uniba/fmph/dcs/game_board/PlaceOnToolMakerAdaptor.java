@@ -3,9 +3,14 @@ package sk.uniba.fmph.dcs.game_board;
 
 import sk.uniba.fmph.dcs.stone_age.*;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-public class PlaceOnToolMakerAdaptor implements InterfaceFigureLocationInternal {
+
+public class PlaceOnToolMakerAdaptor implements InterfaceFigureLocationInternal, InterfaceGetState {
     private final ToolMakerHutFields toolMaker;
+    private final List<PlayerOrder> usedPlayers = new ArrayList<>();
 
     /**
      * Constructs a new {@code PlaceOnToolMakerAdaptor} with the specified {@link ToolMakerHutFields}.
@@ -26,11 +31,9 @@ public class PlaceOnToolMakerAdaptor implements InterfaceFigureLocationInternal 
      */
     @Override
     public boolean placeFigures(Player player, int figureCount) {
-        if(tryToPlaceFigures(player, figureCount).equals(HasAction.AUTOMATIC_ACTION_DONE)){
-            if(toolMaker.placeOnToolMaker(player)){
-                player.playerBoard().takeFigures(figureCount);
-                return true;
-            }
+        if(toolMaker.placeOnToolMaker(player)){
+            player.getPlayerBoard().takeFigures(figureCount);
+            return true;
         }
         return false;
     }
@@ -45,7 +48,7 @@ public class PlaceOnToolMakerAdaptor implements InterfaceFigureLocationInternal 
     @Override
     public HasAction tryToPlaceFigures(Player player, int count) {
 
-        if(!player.playerBoard().hasFigures(count)){
+        if(!player.getPlayerBoard().hasFigures(count)){
             return HasAction.NO_ACTION_POSSIBLE;
         }
 
@@ -54,6 +57,10 @@ public class PlaceOnToolMakerAdaptor implements InterfaceFigureLocationInternal 
         }
 
         if(!toolMaker.canPlaceOnToolMaker(player)){
+            return HasAction.NO_ACTION_POSSIBLE;
+        }
+
+        if(!placeFigures(player, count)){
             return HasAction.NO_ACTION_POSSIBLE;
         }
 
@@ -69,7 +76,7 @@ public class PlaceOnToolMakerAdaptor implements InterfaceFigureLocationInternal 
      * @return an {@link ActionResult} indicating the outcome of the action
      */
     @Override
-    public ActionResult makeAction(Player player, Effect[] inputResources, Effect[] outputResources) {
+    public ActionResult makeAction(Player player, Collection<Effect> inputResources, Collection<Effect> outputResources) {
         if(toolMaker.actionToolMaker(player)){
             return ActionResult.ACTION_DONE;
         }
@@ -95,7 +102,10 @@ public class PlaceOnToolMakerAdaptor implements InterfaceFigureLocationInternal 
      */
     @Override
     public HasAction tryToMakeAction(Player player) {
-        return null;
+        if(makeAction(player, List.of(new Effect[0]), List.of(new Effect[0])) == ActionResult.ACTION_DONE){
+            return HasAction.AUTOMATIC_ACTION_DONE;
+        }
+        return HasAction.NO_ACTION_POSSIBLE;
     }
 
 
@@ -107,7 +117,7 @@ public class PlaceOnToolMakerAdaptor implements InterfaceFigureLocationInternal 
      */
     @Override
     public boolean newTurn() {
-        return false;
+        return toolMaker.newTurn();
     }
   
     /**
